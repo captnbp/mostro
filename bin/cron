@@ -1,0 +1,133 @@
+#!/bin/bash
+
+DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd )
+export DIR
+cd "$DIR"
+
+if [ -z "$DIR" ]
+then
+	error_log "Unable to determine running directory."
+	exit 1
+fi
+
+DEBUG=0
+JITTER=1
+VERBOSE=0
+export API_TIMESTAMP=$(date +"%s")
+
+. "$DIR/bin/lib/helpers"
+
+for ARG in "$@"
+do
+	if [ "$ARG" = "--debug" ]
+	then
+		DEBUG=1
+	elif [ "$ARG" = "--no-jitter" ]
+	then
+		JITTER=0
+	elif [ "$ARG" = "--verbose" ]
+	then
+		VERBOSE=1
+	fi
+done
+
+function verbose() {
+	[ "$VERBOSE" = "1" ]
+	return $?
+}
+
+function debug() {
+	[ "$DEBUG" = "1" ]
+	return $?
+}
+
+function jitter() {
+	[ "$JITTER" = "1" ]
+	return $?
+}
+
+if [ ! -f "$CONFIGURATION_FILE" ]
+then
+	error_log "Missing configuration file."
+	exit 1
+fi
+
+set -a
+
+. "$CONFIGURATION_FILE"
+
+if [ -z "$ENDPOINT" ]
+then
+	ENDPOINT="https://api.mostro.com"
+fi
+
+if [ -z "$HOST" ]
+then
+	HOST=$HOSTNAME
+
+	if [ -z "$HOST" ]
+	then
+		error_log "Invalid hostname"
+		exit 1
+	fi
+fi
+
+if [ -z "$TOKEN" ]
+then
+	error_log "No authentication token specified"
+	exit 1
+fi
+
+if debug
+then
+	run_enabled_checks
+else
+	if jitter
+	then
+		if hash cksum 2>/dev/null
+		then
+			# To reduce the load of servers reporting all at the same time,
+			# we sleep between 0 and 30 seconds before running the checks.
+			# The amount of time is determined from the server hostname, which
+			# makes sure it's consistent between runs.
+			JITTER=$(( $(echo "$HOST" | cksum | cut -c"1-6") % 30 ))
+
+			if [ "$JITTER" -gt 0 ]
+			then
+				error_log "Sleeping $JITTER seconds..."
+				sleep $JITTER
+			fi
+		fi
+	fi
+
+	PIDFILE="$DIR/mostro_cron.pid"
+
+	if [ -e "${PIDFILE}" ] && (ps -p "$(<"${PIDFILE}")" > /dev/null); then
+		error_log "Cron already running."
+		exit 1
+	fi
+
+	echo $$>"$PIDFILE"
+
+	CHECKS_OUTPUT=$(mktemp)
+
+	run_enabled_checks > "$CHECKS_OUTPUT"
+
+	update_return_code $?
+
+	if verbose
+	then
+		cat "$CHECKS_OUTPUT"
+		CURL_ARGS="-v"
+	fi
+
+	"$DIR/bin/send_to_api" $CURL_ARGS > /dev/null < "$CHECKS_OUTPUT"
+
+	update_return_code $?
+
+	rm -f "$CHECKS_OUTPUT"
+
+	rm -f "$PIDFILE"
+fi
+
+exit "$GLOBALRETURNCODE"

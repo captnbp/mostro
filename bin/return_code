@@ -1,0 +1,36 @@
+#!/bin/bash
+
+DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd )
+export DIR
+
+ARGUMENT="$1"
+shift
+
+if [ -z "$ARGUMENT" ]
+then
+  echo "No command name specified"
+  exit 1
+fi
+
+CMD="$@"
+
+if [ -z "$CMD" ]
+then
+  echo "No command specified"
+  exit 1
+fi
+
+$CMD
+
+RETURN_CODE="$?"
+
+CONTENT=$(cat <<EOF
+---
+service: return_code
+version: 2014120901
+argument: $ARGUMENT
+return_code: $RETURN_CODE
+EOF
+)
+
+( (echo "$CONTENT" | "$DIR"/bin/send_to_api) 2>&1) > /dev/null

@@ -1,0 +1,349 @@
+#!/bin/bash
+
+# Determine script location
+DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd )
+export DIR
+cd "$DIR"
+
+if [ -z "$DIR" ]
+then
+  error_log "Unable to determine running directory."
+  exit 1
+fi
+
+. "$DIR/bin/lib/helpers"
+
+CRON_PATH="$DIR/bin/cron"
+
+# Temporary file to store the configuration until we save it at the very end
+TMP_ENABLED_CHECKS=$(mktemp)
+
+if [[ ! -f "$CONFIGURATION_FILE_TEMPLATE" ]]
+then
+  error_log "Configuration templates missing"
+  cleanup_and_exit 1
+else
+  cp "$CONFIGURATION_FILE_TEMPLATE" "$TMP_ENABLED_CHECKS"
+fi
+
+function cleanup_and_exit () {
+  CODE="$1"
+
+  if [ -z "$CODE" ]
+  then
+    CODE=1
+  fi
+
+  rm -f "$TMP_ENABLED_CHECKS"
+  exit "$CODE"
+}
+
+function control_c () {
+  # Reset the terminal if the user interrupted during a "read" question
+
+  stty echo echok
+  echo
+  cleanup_and_exit 1
+}
+
+trap control_c SIGINT
+
+function setup {
+  if [[ -f "$CONFIGURATION_FILE" ]]
+  then
+    echo "It seems you already have run this script."
+    echo
+
+    if confirm "Do you want to overwrite the previous configuration?" "N"
+    then
+      cleanup_and_exit 0
+    fi
+
+    echo
+  fi
+
+  echo "This script is going to detect and enable the default"
+  echo "basic checks for your server."
+  echo
+
+  if ! confirm "Are you ready to proceed?" "Y"
+  then
+    cleanup_and_exit 0
+  fi
+
+  echo
+
+  detect_enabled_checks
+}
+
+function enable {
+  local CMD="$1"
+  local NAME="$2"
+
+  if [ ! -z "$3" ]
+  then
+    local ARGUMENT=" $3"
+  fi
+
+  FULL_CMD="RUN ${CMD}${ARGUMENT}"
+
+  if OUTPUT=$(run_check "checks/${CMD}${ARGUMENT}" 2>&1)
+  then
+    echo -n " * Enabling check for "
+    bold "${NAME}"
+    echo
+  else
+    return 1
+  fi
+
+  # There are three possibilities when enabling a check in the configuration file:
+  #  1. the check already exists with a different argument:
+  #      run disk_space /
+  #      run disk_space /home
+  #
+  #  2. the check is commented:
+  #      # run disk_space /
+  #
+  #  3. the check doesn't exist in the configuration file template
+
+  # 1. We detect the last line number where the check is enabled.
+  #      run disk_space /
+  #      run disk_space /home <= this one
+  LINE_NUMBER=$(grep -n "^RUN ${CMD}" "$TMP_ENABLED_CHECKS" | cut -d":" -f1 | tail -n1)
+
+  if [ ! -z "$LINE_NUMBER" ]
+  then
+    # We append the new check right after the last one
+    #    run disk_space /
+    #    run disk_space /home
+    #    run disk_space /data <= new check
+    #
+    # sed command: 2aRUN disk_space /data
+    sed -i "${LINE_NUMBER}a${FULL_CMD}" "$TMP_ENABLED_CHECKS"
+    return 0
+  fi
+
+  # 2. Is there a commented line for this check?
+  COUNT=$(grep -c "^# RUN ${CMD}" "$TMP_ENABLED_CHECKS")
+
+  if [ "$COUNT" -gt 0 ]
+  then
+    # There is! We replace the comment with the new check,
+    #
+    # sed command: 0,/^# RUN test/s//RUN test/
+    #   0,/^# RUN test/  => find the first occurence of "# RUN test"
+    #   s//RUN test/     => replace it with "RUN test" (we don't need to repeat the pattern)
+    sed -i "0,\|^# RUN ${CMD}.*|s||${FULL_CMD}|" "$TMP_ENABLED_CHECKS"
+    return 0
+  fi
+
+  # 3. The check is not in the template, we just append it at the end.
+  echo "${FULL_CMD}" >> "$TMP_ENABLED_CHECKS"
+  return 0
+}
+
+function detect_swap {
+  # Enable swap if there is more than 0 bytes of swap on the server
+
+  SWAP=$(awk '{ if ($1 == "SwapTotal:" && $2 > 0) print "1" }' /proc/meminfo)
+
+  if [ "$SWAP" = "1" ]
+  then
+    return 0
+  else
+    return 1
+  fi
+}
+
+function detect_partitions {
+  # Find all partitions matching:
+  #  /dev/sda1   /
+  #  UUID=test   /
+  #  LABEL=test  /
+  awk 'match($1, /^(\/|[A-Z]+=)/) && match($2, /^\//) { print $2 }' /etc/fstab
+}
+
+function detect_interfaces {
+  awk '{ if ($2 > 0) print $1 }' /proc/net/dev | egrep '^eth.:$' | cut -d":" -f1
+}
+
+function detect_disks {
+  # Find all ethX interfaces with more than 0 bytes of traffic
+ ls /dev/sd[a-z] /dev/xvd[a-z] /dev/vd[a-z] 2>/dev/null
+}
+
+function detect_enabled_checks {
+  enable "cpu.sh" "CPU"
+  enable "memory_ram.sh" "RAM"
+  enable "load_average.sh" "Load average"
+  enable "forks.sh" "Fork rate"
+
+  if detect_swap
+  then
+    enable "memory_swap.sh" "Swap"
+    enable "memory_swap_paging.sh" "Swap paging"
+  fi
+
+  PARTITIONS=$(detect_partitions)
+
+  for PARTITION in $PARTITIONS
+  do
+    if [[ -d $PARTITION && -r $PARTITION ]]
+    then
+      enable "disk_space.sh" "Disk space for $PARTITION" "$PARTITION"
+      enable "disk_inodes.sh" "Disk inodes for $PARTITION" "$PARTITION"
+    fi
+  done
+
+  DISKS=$(detect_disks)
+
+  for DISK in $DISKS
+  do
+    if [ -b "$DISK" ]
+    then
+      DISK=$(basename "$DISK")
+      enable "disk_io.sh" "IO for $DISK" "$DISK"
+    fi
+  done
+
+  IFACES=$(detect_interfaces)
+
+  for IFACE in $IFACES
+  do
+    enable "network_traffic.sh" "Traffic for $IFACE" "$IFACE"
+  done
+
+  enable "network_conntrack.sh" "Netfilter Connection Tracking"
+
+  enable "ntp_offset.sh" "NTP offset"
+
+  echo
+
+  if confirm "Does this look right to you?" "Y"
+  then
+    save_config
+    run_checks
+    setup_cron
+  else
+    save_config
+
+    echo
+    echo "The configuration has been saved."
+    echo
+    echo "You can now edit the configuration file and enable"
+    echo "the checks that should be running on this server."
+
+    manual_cron
+  fi
+}
+
+function save_config() {
+  sed -i "s/^TOKEN=\$/TOKEN=$TOKEN/" "$TMP_ENABLED_CHECKS"
+  mv "$TMP_ENABLED_CHECKS" "$CONFIGURATION_FILE"
+}
+
+function run_checks() {
+  echo
+  echo -n "Running the checks and sending the results to Mostro... "
+
+  OUTPUT=$( "${CRON_PATH}" --no-jitter 2>&1 )
+
+  RETURNCODE="$?"
+
+  if [ "$RETURNCODE" -gt "0" ]
+  then
+    red "failed!"
+    echo
+    cmd_output "$OUTPUT"
+    cleanup_and_exit 1
+  else
+    green "everything went fine!"
+    echo
+  fi
+}
+
+function setup_cron {
+  NBCRON=$( ( crontab -l | grep -c "${CRON_PATH}" ) 2>/dev/null )
+
+  echo
+
+  if [ "$NBCRON" -gt "0" ]
+  then
+    echo "Looks like the cron for the agent is already setup..."
+    all_good
+  else
+    if [ -f "$(which crontab)" ]
+    then
+      echo "Now, you need to edit your crontab to run the checks"
+      echo "every minute and send the results to Mostro."
+      echo
+
+      if confirm "Do you want me to do it for you?" "Y"
+      then
+        OUTPUT=$( ( ( crontab -l ; echo -e "* * * * *\t${CRON_PATH}" ) | crontab - ) 2>&1 )
+
+        RETURNCODE="$?"
+
+        echo
+
+        if [ "$RETURNCODE" -gt "0" ]
+        then
+          red "We failed adding the cron!"
+          echo
+          cmd_output "$OUTPUT"
+          cleanup_and_exit 1
+        else
+          green "The cron will run every minute."
+          echo
+          all_good
+          return
+        fi
+      fi
+    fi
+
+    manual_cron
+  fi
+}
+
+function manual_cron {
+  echo
+  echo "When you're ready, add this line to your crontab"
+  echo "to run the checks every minute:"
+  echo
+  echo -e "* * * * *\t${CRON_PATH}"
+}
+
+function all_good {
+  echo
+  green "Mostro is up and running."
+  echo
+  bold "You can head back to the dashboard to see how this server is doing!"
+  echo
+  echo
+  cleanup_and_exit 0
+}
+
+TOKEN=$1
+
+if [[ -z "$TOKEN" ]]
+then
+  error_log "Usage: setup token"
+  cleanup_and_exit 1
+fi
+
+cat <<-'EOF'
+
+                                 __
+           ____ ___  ____  _____/ /__________
+          / __ `__ \/ __ \/ ___/ __/ ___/ __ \
+         / / / / / / /_/ (__  ) /_/ /  / /_/ /
+        /_/ /_/ /_/\____/____/\__/_/   \____/
+
+EOF
+
+bold "        Welcome to the Mostro setup assistant!"
+echo
+echo
+echo
+
+setup

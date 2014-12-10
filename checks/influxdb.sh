@@ -1,0 +1,15 @@
+#!/bin/bash -e
+
+echo "---"
+echo "service: influxdb"
+echo "version: 2014120901"
+
+INFLUXDB_HOST=${INFLUXDB_HOST:-"localhost:8086"}
+INFLUXDB_USER=${INFLUXDB_USER:-root}
+INFLUXDB_PASSWORD=${INFLUXDB_PASSWORD:-root}
+
+OUTPUT=$(curl -sS -f "http://${INFLUXDB_HOST}/db?u=${INFLUXDB_USER}&p=${INFLUXDB_PASSWORD}")
+
+DATABASE_COUNT=$(echo "$OUTPUT" | grep -o '"name":' | wc -l)
+
+echo "database_count: ${DATABASE_COUNT}"

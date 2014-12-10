@@ -1,0 +1,185 @@
+#!/bin/bash
+
+CONFIGURATION_FILE="$DIR/mostro.conf"
+CONFIGURATION_FILE_TEMPLATE="${CONFIGURATION_FILE}.template"
+
+MINUTE_TIMESTAMP=$(($(date "+%s") / 60))
+GLOBALRETURNCODE=0
+
+if [ -z "$CONCURRENCY" ]
+then
+  CONCURRENCY=4
+fi
+
+if [ -z "$TIMEOUT" ]
+then
+  TIMEOUT=10
+fi
+
+function error_log () {
+  echo "$@" 1>&2;
+}
+
+function cmd_output {
+  echo "$@" | sed "s/^/  > /"
+}
+
+function bold() {
+  echo -ne "\033[1m${@}\033[0m"
+  tput sgr0
+}
+
+function red() {
+  echo -ne '\E[0;31m'"\033[1m${@}\033[0m"
+  tput sgr0
+}
+
+function green() {
+  echo -ne '\E[0;32m'"\033[1m${@}\033[0m"
+  tput sgr0
+}
+
+function confirm () {
+  QUESTION="$1"
+  DEFAULT="${2:N}"
+
+  if [ "$DEFAULT" = "Y" ]
+  then
+    OTHER="N"
+  else
+    OTHER="Y"
+  fi
+
+  echo -n "$QUESTION ["
+
+  if [ "$DEFAULT" = "Y" ]
+  then
+    bold Y
+  else
+    echo -n y
+  fi
+
+  echo -n "/"
+
+  if [ "$DEFAULT" = "N" ]
+  then
+    bold N
+  else
+    echo -n n
+  fi
+
+  read -n1 -p "] " CONFIRMATION
+
+  if [[ ! -z "$CONFIRMATION" ]]
+  then
+    echo
+  fi
+
+  if [[ "$CONFIRMATION" = "$OTHER" || "$CONFIRMATION" = "${OTHER,,}" ]]
+  then
+    return 1
+  else
+    return 0
+  fi
+}
+
+function update_return_code() {
+  if [ "$1" -gt "$GLOBALRETURNCODE" ]
+  then
+    GLOBALRETURNCODE="$1"
+  fi
+}
+
+ENABLED_CHECKS=()
+
+# This function enables the checks, if their frequency matches the current time.
+# The actual run is done by the run_check function.
+function RUN() {
+  local OPTIND
+  local FREQUENCY
+
+  while getopts "f:" o
+  do
+    case "${o}" in
+      f)
+        FREQUENCY="${OPTARG}"
+        ;;
+    esac
+  done
+
+  shift $((OPTIND-1))
+
+  # The cron runs every minute, but each check in the configuration can run at
+  # a different frequency.
+  if [ -z "$DEFAULT_FREQUENCY" ]
+  then
+    DEFAULT_FREQUENCY=1m
+  fi
+
+  if [ -z "$FREQUENCY" ]
+  then
+    FREQUENCY="$DEFAULT_FREQUENCY"
+  fi
+
+  if [[ "$FREQUENCY" =~ ^([0-9]+)h$ ]]
+  then
+    # 2h => 120
+    FREQUENCY=${BASH_REMATCH[1]}
+    FREQUENCY=$((FREQUENCY * 60))
+  elif [[ "$FREQUENCY" =~ ^([0-9]+)m?$ ]]
+  then
+    # 10m => 10
+    FREQUENCY=${BASH_REMATCH[1]}
+  fi
+
+  # MINUTE_TIMESTAMP is a Unix timestamp in minutes.
+  if ! [ $(( MINUTE_TIMESTAMP % FREQUENCY )) -eq 0 ]
+  then
+    return 0
+  fi
+
+  CMD=$1
+  shift
+
+  OPTIONS="$@"
+
+  ENABLED_CHECKS+=("checks/$CMD $OPTIONS")
+}
+
+function run_enabled_checks() {
+  for check in "${ENABLED_CHECKS[@]}"
+  do
+    run_check "$check"
+  done
+}
+
+function run_check() {
+  CMD=$1
+
+  if hash timeout 2>/dev/null
+  then
+    # Avoid long running checks that could block the execution of the cron.
+    OUTPUT=$( timeout $TIMEOUT $CMD )
+  else
+    OUTPUT=$( $CMD )
+  fi
+
+  RETURNCODE=$?
+
+  update_return_code $RETURNCODE
+
+  if [ "$RETURNCODE" != "0" ]
+  then
+    if [ "$RETURNCODE" = "124" ]
+    then
+      error_log "$CMD took too long (timeout after $TIMEOUT seconds):"
+    else
+      error_log "Error (return code: $RETURNCODE) while running $CMD:"
+    fi
+    error_log "$OUTPUT"
+  else
+    echo "$OUTPUT"
+  fi
+
+  return $RETURNCODE
+}

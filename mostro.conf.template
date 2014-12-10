@@ -1,0 +1,176 @@
+##############################################################################
+# Settings                                                                   #
+##############################################################################
+
+# This is the authentication token provided by Mostro.
+# You can find it in the interface (Settings > Organization).
+TOKEN=
+
+# By default, the server name in Mostro is using your server's hostname.
+# You can override the value here.
+# HOST=
+
+# You can provide a list of tags, separated by commas, to apply
+# specific rules to some of your servers.
+#
+#    TAGS=sql,web,staging
+#
+# TAGS=
+
+# By default, the checks run every minute. You can change this
+# frequency here, or for each individual check with the -f argument:
+#
+#    DEFAULT_FREQUENCY=5m
+#    RUN -f 3m disk_inodes.sh /
+#    RUN -f 1h memory_swap.sh
+#
+# Note: the cron script itself will run every minute regardless of the
+# DEFAULT_FREQUENCY setting so that Mostro can detect whether
+# your server is up.
+DEFAULT_FREQUENCY=1m
+
+##############################################################################
+# System                                                                     #
+##############################################################################
+
+# CPU Usage
+# RUN cpu.sh
+
+# Fork rate
+# RUN forks.sh
+
+# Memory usage
+# RUN memory_ram.sh
+
+# Swap Usage
+# RUN memory_swap.sh
+
+# Swap paging
+# RUN memory_swap_paging.sh
+
+# Load average
+# RUN load_average.sh
+
+##############################################################################
+# Disks                                                                      #
+##############################################################################
+
+# Disk space and inodes
+# RUN disk_space.sh /
+# RUN disk_inodes.sh /
+
+# Default IO monitoring
+# RUN disk_io.sh sda
+
+# IO monitoring for EC2
+# RUN disk_io.sh xvda
+
+##############################################################################
+# Network                                                                    #
+##############################################################################
+
+# Network traffic
+# RUN network_traffic.sh eth0
+# RUN network_traffic.sh eth1
+
+# Netfilter Connection tracking
+# RUN network_conntrack.sh
+
+# NTP Offset
+# RUN ntp_offset.sh
+
+##############################################################################
+# HTTP                                                                       #
+##############################################################################
+
+# HTTP Status
+# RUN http_status.sh [check_name] [url] [curl_options]
+
+# Without argument, the script will check the status for the local web server.
+# RUN http_status.sh
+
+# With this configuration, the check will return the status for
+# http://www.mostro.com/ and will show up in the interface
+# as "HTTP Status: Homepage".
+# RUN http_status.sh "Homepage" "http://www.mostro.com/"
+
+# It is also possible to pass parameters to curl. In this example, curl would
+# bypass the DNS and try to fetch http://www.mostro.com/ from localhost.
+# This is useful if you have a load-balancing setup and want to try each
+# webserver independently.
+# RUN http_status.sh "Homepage" "http://www.mostro.com/" --resolve 'www.mostro.com:80:127.0.0.1'
+
+
+# HTTP Content
+# RUN http_content.sh check_name url string_to_look_for [curl_options]
+
+# In this example, the check would look for the string "Forgot your password"
+# on the sign-in page.
+# It will show up in the interface as "HTTP Content: Sign-in"
+# RUN http_content.sh "Sign-in" "https://www.mostro.com/users/sign_in" "Forgot your password"
+
+##############################################################################
+# Memcache                                                                   #
+##############################################################################
+
+# MEMCACHE_HOST=localhost
+
+# Memcache status
+# RUN memcache.sh
+
+# You can pass a port as argument if you have multiple instances of memcache
+# RUN memcache.sh 11211
+# RUN memcache.sh 11212
+
+##############################################################################
+# MySQL                                                                      #
+##############################################################################
+
+# MYSQL_HOST=localhost
+# MYSQL_USER=monitoring
+# MYSQL_PASSWORD=monitoring_secret
+
+# You need to create a user with limited rights:
+# GRANT USAGE ON *.* TO monitoring@localhost IDENTIFIED BY 'monitoring_secret'
+
+# If you want to check the replication status, you need to add a privilege:
+# GRANT REPLICATION CLIENT ON *.* TO monitoring@localhost
+
+# MySQL status
+# RUN mysql.sh
+
+# Check MySQL replication on a slave server
+# RUN mysql_replication.sh
+
+##############################################################################
+# nginx                                                                      #
+##############################################################################
+
+# You need to enable the stub_status module in nginx configuration:
+#   location /nginx_status {
+#     stub_status on;
+#     allow 127.0.0.1;
+#     deny all;
+#   }
+
+# RUN nginx.sh
+
+# You can give the URL to the nginx status page as an argument.
+# RUN nginx.sh http://localhost/nginx_status
+
+##############################################################################
+# Redis                                                                      #
+##############################################################################
+
+# REDIS_HOST=localhost
+# REDIS_PASSWORD=
+
+# Redis status
+# RUN redis.sh
+
+# You can pass a port as argument if you have multiple instances of Redis
+# RUN redis.sh 6379
+# RUN redis.sh 6380
+
+# Check Redis replication on a slave server
+# RUN redis_replication.sh
