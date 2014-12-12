@@ -13,6 +13,14 @@ fi
 
 . "$DIR/bin/lib/helpers"
 
+for ARG in "$@"
+do
+  if [ "$ARG" = "--yes" ]
+  then
+    YES_TO_ALL=1
+  fi
+done
+
 CRON_PATH="$DIR/bin/cron"
 
 # Temporary file to store the configuration until we save it at the very end

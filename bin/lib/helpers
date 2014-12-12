@@ -68,7 +68,13 @@ function confirm () {
     echo -n n
   fi
 
-  read -n1 -p "] " CONFIRMATION
+  if [ -n "$YES_TO_ALL" ]
+  then
+    echo "] $DEFAULT"
+    return 0
+  else
+    read -n1 -p "] " CONFIRMATION
+  fi
 
   if [[ ! -z "$CONFIRMATION" ]]
   then
