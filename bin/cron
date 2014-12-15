@@ -94,7 +94,11 @@ else
 
 			if [ "$JITTER" -gt 0 ]
 			then
-				error_log "Sleeping $JITTER seconds..."
+				if verbose
+				then
+					error_log "Sleeping $JITTER seconds..."
+				fi
+
 				sleep $JITTER
 			fi
 		fi
