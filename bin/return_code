@@ -12,17 +12,13 @@ then
   exit 1
 fi
 
-CMD="$@"
+RETURN_CODE="$1"
 
-if [ -z "$CMD" ]
+if [ -z "$RETURN_CODE" ]
 then
-  echo "No command specified"
+  echo "No return code given"
   exit 1
 fi
-
-$CMD
-
-RETURN_CODE="$?"
 
 CONTENT=$(cat <<EOF
 ---
