@@ -157,35 +157,49 @@ function run_enabled_checks() {
   do
     run_check "$check"
   done
+
+  return $GLOBALRETURNCODE
+}
+
+function print_error() {
+  echo "# ERROR: $1">&1
 }
 
 function run_check() {
-  CMD=$1
+  CHECK=$1
 
   if hash timeout 2>/dev/null
   then
     # Avoid long running checks that could block the execution of the cron.
-    OUTPUT=$( timeout $TIMEOUT $CMD )
+    CMD="timeout $TIMEOUT $CHECK"
   else
-    OUTPUT=$( $CMD )
+    CMD="$CHECK"
   fi
+
+  OUTPUT=$($CMD 2> >(while read LINE; do print_error "$LINE"; done))
 
   RETURNCODE=$?
 
-  update_return_code $RETURNCODE
+  if ! [[ "$OUTPUT" =~ ^--- ]]
+  then
+    echo "---"
+  fi
+
+  echo "$OUTPUT"
 
   if [ "$RETURNCODE" != "0" ]
   then
     if [ "$RETURNCODE" = "124" ]
     then
-      error_log "$CMD took too long (timeout after $TIMEOUT seconds):"
+      print_error "\"${CMD}\" took too long (timeout after $TIMEOUT seconds)"
     else
-      error_log "Error (return code: $RETURNCODE) while running $CMD:"
+      print_error "Error (return code: $RETURNCODE) while running \"${CMD}\""
     fi
-    error_log "$OUTPUT"
-  else
-    echo "$OUTPUT"
+
+    print_error "You can debug by running the check standalone: ${DIR}/${CHECK}"
   fi
+
+  update_return_code $RETURNCODE
 
   return $RETURNCODE
 }
