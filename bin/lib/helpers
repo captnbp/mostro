@@ -149,7 +149,12 @@ function RUN() {
 
   OPTIONS="$@"
 
-  ENABLED_CHECKS+=("checks/$CMD $OPTIONS")
+  if [ -f "checks/$CMD" ]
+  then
+    ENABLED_CHECKS+=("checks/$CMD $OPTIONS")
+  else
+    ENABLED_CHECKS+=("$CMD $OPTIONS")
+  fi
 }
 
 function run_enabled_checks() {
