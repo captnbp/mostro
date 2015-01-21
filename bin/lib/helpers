@@ -171,17 +171,14 @@ function print_error() {
 }
 
 function run_check() {
-  CHECK=$1
+  CMD=$1
 
   if hash timeout 2>/dev/null
   then
-    # Avoid long running checks that could block the execution of the cron.
-    CMD="timeout $TIMEOUT $CHECK"
+    OUTPUT=$(timeout $TIMEOUT /bin/sh -c "$CMD" 2> >(while read LINE; do print_error "$LINE"; done))
   else
-    CMD="$CHECK"
+    OUTPUT=$(/bin/sh -c "$CMD" 2> >(while read LINE; do print_error "$LINE"; done))
   fi
-
-  OUTPUT=$($CMD 2> >(while read LINE; do print_error "$LINE"; done))
 
   RETURNCODE=$?
 
