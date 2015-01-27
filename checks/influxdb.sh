@@ -8,7 +8,11 @@ INFLUXDB_HOST=${INFLUXDB_HOST:-"localhost:8086"}
 INFLUXDB_USER=${INFLUXDB_USER:-root}
 INFLUXDB_PASSWORD=${INFLUXDB_PASSWORD:-root}
 
-OUTPUT=$(curl -sS -f "http://${INFLUXDB_HOST}/db?u=${INFLUXDB_USER}&p=${INFLUXDB_PASSWORD}")
+if ! OUTPUT=$(curl -sS -f "http://${INFLUXDB_HOST}/db?u=${INFLUXDB_USER}&p=${INFLUXDB_PASSWORD}" 2>&1)
+then
+  echo "error: \"$OUTPUT\""
+  exit
+fi
 
 DATABASE_COUNT=$(echo "$OUTPUT" | grep -o '"name":' | wc -l)
 

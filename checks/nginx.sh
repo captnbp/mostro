@@ -8,7 +8,11 @@ NGINX_STATUS_URL=${1:-"http://localhost/nginx_status"}
 
 IFS=$'\n'
 
-OUTPUT=$(curl -sS -f "$NGINX_STATUS_URL")
+if ! OUTPUT=$(curl -sS -f "$NGINX_STATUS_URL" 2>&1)
+then
+  echo "error: \"$OUTPUT\""
+  exit
+fi
 
 for LINE in $OUTPUT
 do

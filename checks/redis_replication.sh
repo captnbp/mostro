@@ -24,7 +24,11 @@ then
   COMMAND="$COMMAND -a ${REDIS_PASSWORD}"
 fi
 
-OUTPUT=$($COMMAND INFO)
+if ! OUTPUT=$($COMMAND INFO 2>&1)
+then
+  echo "error: \"$OUTPUT\""
+  exit
+fi
 
 for LINE in $OUTPUT
 do

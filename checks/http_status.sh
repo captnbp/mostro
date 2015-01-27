@@ -22,4 +22,13 @@ time_starttransfer: %{time_starttransfer}
 time_total: %{time_total}\n
 EOF
 
-curl -o /dev/null -w "$FORMAT" -s -f --max-time 8 $@ "$URL" || true
+function log_error () {
+  ERROR=$(</dev/stdin)
+
+  if [ -n "$ERROR" ]
+  then
+    echo "error: \"$ERROR\""
+  fi
+}
+
+curl -o /dev/null -w "$FORMAT" --stderr >(log_error) -sS -f --max-time 8 $@ "$URL" || true

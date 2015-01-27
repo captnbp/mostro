@@ -12,14 +12,14 @@ shift
 
 if [ -z "$ARGUMENT" ]
 then
-  echo "You have to give a check name." >&2
-  exit 1
+  echo "error: You have to give a check name."
+  exit
 fi
 
 if [ -z "$1" ]
 then
-  echo "You have to specify a Nagios check." >&2
-  exit 1
+  echo "error: You have to specify a Nagios check."
+  exit
 fi
 
 echo "argument: $ARGUMENT"
