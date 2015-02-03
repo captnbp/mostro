@@ -12,11 +12,7 @@ TOKEN=
 
 # You can provide a list of tags, separated by commas, to apply
 # specific rules to some of your servers.
-#
-#    TAGS=sql,web,staging
-#
-# TAGS=
-
+# TAGS=sql,web,staging
 
 ##############################################################################
 # System                                                                     #
