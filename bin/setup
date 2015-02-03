@@ -288,7 +288,7 @@ function setup_cron {
 
       if confirm "Do you want me to do it for you?" "Y"
       then
-        CRON_COMMENT="# The Mostro agent needs to run every minute to make sure your server is up.\n# To adjust the frequency, edit the mostro.conf file."
+        CRON_COMMENT="# The Mostro agent needs to run every minute to ensure your server and checks are up."
         OUTPUT=$( ( ( crontab -l ; echo -e "${CRON_COMMENT}\n* * * * *\t${CRON_PATH}" ) | crontab - ) 2>&1 )
 
         RETURNCODE="$?"

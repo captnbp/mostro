@@ -12,22 +12,7 @@ TOKEN=
 
 # You can provide a list of tags, separated by commas, to apply
 # specific rules to some of your servers.
-#
-#    TAGS=sql,web,staging
-#
-# TAGS=
-
-# By default, the checks run every minute. You can change this
-# frequency here, or for each individual check with the -f argument:
-#
-#    DEFAULT_FREQUENCY=5m
-#    RUN -f 3m disk_inodes.sh /
-#    RUN -f 1h memory_swap.sh
-#
-# Note: the cron script itself will run every minute regardless of the
-# DEFAULT_FREQUENCY setting so that Mostro can detect whether
-# your server is up.
-DEFAULT_FREQUENCY=1m
+# TAGS=sql,web,staging
 
 ##############################################################################
 # System                                                                     #

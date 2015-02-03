@@ -98,52 +98,8 @@ function update_return_code() {
 
 ENABLED_CHECKS=()
 
-# This function enables the checks, if their frequency matches the current time.
 # The actual run is done by the run_check function.
 function RUN() {
-  local OPTIND
-  local FREQUENCY
-
-  while getopts "f:" o
-  do
-    case "${o}" in
-      f)
-        FREQUENCY="${OPTARG}"
-        ;;
-    esac
-  done
-
-  shift $((OPTIND-1))
-
-  # The cron runs every minute, but each check in the configuration can run at
-  # a different frequency.
-  if [ -z "$DEFAULT_FREQUENCY" ]
-  then
-    DEFAULT_FREQUENCY=1m
-  fi
-
-  if [ -z "$FREQUENCY" ]
-  then
-    FREQUENCY="$DEFAULT_FREQUENCY"
-  fi
-
-  if [[ "$FREQUENCY" =~ ^([0-9]+)h$ ]]
-  then
-    # 2h => 120
-    FREQUENCY=${BASH_REMATCH[1]}
-    FREQUENCY=$((FREQUENCY * 60))
-  elif [[ "$FREQUENCY" =~ ^([0-9]+)m?$ ]]
-  then
-    # 10m => 10
-    FREQUENCY=${BASH_REMATCH[1]}
-  fi
-
-  # MINUTE_TIMESTAMP is a Unix timestamp in minutes.
-  if ! [ $(( MINUTE_TIMESTAMP % FREQUENCY )) -eq 0 ]
-  then
-    return 0
-  fi
-
   CMD=$1
   shift
 
