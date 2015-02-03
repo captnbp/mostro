@@ -3,3 +3,4 @@ checks/custom/*
 *.swp
 *.pid
 .bundle
+spec/
