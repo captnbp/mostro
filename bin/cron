@@ -113,23 +113,20 @@ else
 
 	echo $$>"$PIDFILE"
 
-	CHECKS_OUTPUT=$(mktemp)
-
-	run_enabled_checks > "$CHECKS_OUTPUT"
-
-	update_return_code $?
-
 	if verbose
 	then
-		cat "$CHECKS_OUTPUT"
+		TEE_OUTPUT="/dev/stderr"
 		CURL_ARGS="-v"
+	else
+		TEE_OUTPUT="/dev/null"
 	fi
 
-	"$DIR/bin/send_to_api" $CURL_ARGS > /dev/null < "$CHECKS_OUTPUT"
+	run_enabled_checks | tee "$TEE_OUTPUT" | curl $CURL_ARGS -sS -f --max-time 5 --retry 1 --retry-delay 5 --data-urlencode api_timestamp="$API_TIMESTAMP" --data-urlencode token="$TOKEN" --data-urlencode hostname="$HOST" --data-urlencode tags="$TAGS" --data-urlencode data@- "$ENDPOINT"/api/v1/events > /dev/null
 
-	update_return_code $?
+	RETURN_CODES=( ${PIPESTATUS[@]} )
 
-	rm -f "$CHECKS_OUTPUT"
+	update_return_code ${RETURN_CODES[0]}
+	update_return_code ${RETURN_CODES[2]}
 
 	rm -f "$PIDFILE"
 fi
