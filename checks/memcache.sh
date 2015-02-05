@@ -22,7 +22,7 @@ MEMCACHE_HOST=${MEMCACHE_HOST:-127.0.0.1}
 if ! OUTPUT=$(echo -e "stats\nquit" | nc -v "$MEMCACHE_HOST" "$MEMCACHE_PORT" 2>&1)
 then
   echo "error: \"$OUTPUT\""
-  exit
+  exit 254
 fi
 
 for LINE in $OUTPUT

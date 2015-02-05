@@ -7,7 +7,7 @@ echo "version: 2014120901"
 if [ -z "$1" ]
 then
   echo "error: No argument specified."
-  exit
+  exit 254
 fi
 
 echo "argument: $1"
@@ -15,7 +15,7 @@ echo "argument: $1"
 if ! DATA=$(grep "$1:" /proc/net/dev)
 then
   echo "error: \"Couldn't get data for $1\""
-  exit
+  exit 254
 fi
 
 DATA=( $DATA )

@@ -11,7 +11,7 @@ INFLUXDB_PASSWORD=${INFLUXDB_PASSWORD:-root}
 if ! OUTPUT=$(curl -sS -f "http://${INFLUXDB_HOST}/db?u=${INFLUXDB_USER}&p=${INFLUXDB_PASSWORD}" 2>&1)
 then
   echo "error: \"$OUTPUT\""
-  exit
+  exit 254
 fi
 
 DATABASE_COUNT=$(echo "$OUTPUT" | grep -o '"name":' | wc -l)

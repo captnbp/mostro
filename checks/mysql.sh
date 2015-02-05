@@ -9,7 +9,7 @@ MYSQL_HOST=${MYSQL_HOST:-localhost}
 if ! STATUS=$(mysql --host="$MYSQL_HOST" --user="$MYSQL_USER" --password="$MYSQL_PASSWORD" -e "SHOW GLOBAL STATUS" 2>&1)
 then
   echo "error: \"$STATUS\""
-  exit
+  exit 254
 fi
 
 IFS=$'\n'

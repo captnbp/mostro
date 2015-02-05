@@ -7,7 +7,7 @@ echo "version: 2014120901"
 if ! DATA=$(cat /proc/sys/fs/file-nr 2>&1)
 then
   echo "error: \"$DATA\""
-  exit
+  exit 254
 fi
 
 DATA=( $DATA )

@@ -10,7 +10,7 @@ then
   shift
 else
   echo "error: Missing argument."
-  exit
+  exit 254
 fi
 
 echo "argument: $ARGUMENT"
@@ -21,7 +21,7 @@ then
   shift
 else
   echo "error: You need to pass a URL to cURL."
-  exit
+  exit 254
 fi
 
 if [ -n "$1" ]
@@ -30,13 +30,13 @@ then
   shift
 else
   echo "error: You need to specify a string to find."
-  exit
+  exit 254
 fi
 
 if ! CONTENT=$(curl -sS -f --max-time 8 $@ "$URL" 2>&1)
 then
   echo "error: \"$CONTENT\""
-  exit
+  exit 254
 fi
 
 COUNT=$(echo "$CONTENT" | grep "$STRING" | wc -l)

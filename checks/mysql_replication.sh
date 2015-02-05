@@ -9,7 +9,7 @@ MYSQL_HOST=${MYSQL_HOST:-localhost}
 if ! STATUS=$(mysql --host="$MYSQL_HOST" --user="$MYSQL_USER" --password="$MYSQL_PASSWORD" -e "SHOW SLAVE STATUS\G" 2>&1)
 then
   echo "error: \"$STATUS\""
-  exit
+  exit 254
 fi
 
 SECONDS_BEHIND_MASTER=$(echo "$STATUS" | grep 'Seconds_Behind_Master' | tr -d ' ' | cut -f2 -d':')

@@ -11,7 +11,7 @@ IFS=$'\n'
 if ! OUTPUT=$(curl -sS -f "$NGINX_STATUS_URL" 2>&1)
 then
   echo "error: \"$OUTPUT\""
-  exit
+  exit 254
 fi
 
 for LINE in $OUTPUT
