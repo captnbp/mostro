@@ -6,16 +6,20 @@ echo "version: 2014120901"
 
 if [ -z "$1" ]
 then
-  echo "No argument specified." 1>&2
-	exit 1
+  echo "error: No argument specified."
+  exit 254
 fi
 
 echo "argument: $1"
 
-DATA=$(<"/sys/block/$1/stat")
-SECTORSIZE=$(<"/sys/block/$1/queue/hw_sector_size")
+if ! DATA=$(cat "/sys/block/$1/stat" 2>&1) || ! SECTORSIZE=$(cat "/sys/block/$1/queue/hw_sector_size" 2>&1)
+then
+  echo "error: Couldn't get data for $1"
+  exit 254
+fi
 
 DATA=( $DATA )
+
 echo "reads: ${DATA[0]}"
 echo "writes: ${DATA[4]}"
 echo "sector_reads: ${DATA[2]}"

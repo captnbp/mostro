@@ -6,8 +6,8 @@ echo "version: 2014120901"
 
 if [ -z "$1" ]
 then
-  echo "No argument specified." 1>&2
-  exit 1
+  echo "error: No argument specified."
+  exit 254
 fi
 
 echo "argument: $1"

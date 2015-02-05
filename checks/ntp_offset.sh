@@ -4,14 +4,20 @@ echo "---"
 echo "service: ntp_offset"
 echo "version: 2014120901"
 
-PEERS=$(ntpq -nc peers)
+PEERS=$(ntpq -nc peers 2>&1)
+
+if [[ "$?" != "0" || $PEERS =~ ^ntpq ]]
+then
+  echo "error: \"$PEERS\""
+  exit 254
+fi
 
 OFFSET=$(echo "$PEERS" | grep '^\*' | awk '{ print $9 }')
 
 if [ -z "$OFFSET" ]
 then
-  echo "Invalid offset" 1>&2
-  exit 1
+  echo "error: No active peer."
+  exit 254
 fi
 
 echo "offset: $OFFSET"

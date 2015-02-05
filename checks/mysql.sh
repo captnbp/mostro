@@ -6,17 +6,19 @@ echo "version: 2014120901"
 
 MYSQL_HOST=${MYSQL_HOST:-localhost}
 
-typeset -l STATUS
-
-STATUS=$(mysql --host="$MYSQL_HOST" --user="$MYSQL_USER" --password="$MYSQL_PASSWORD" -e "SHOW GLOBAL STATUS")
+if ! STATUS=$(mysql --host="$MYSQL_HOST" --user="$MYSQL_USER" --password="$MYSQL_PASSWORD" -e "SHOW GLOBAL STATUS" 2>&1)
+then
+  echo "error: \"$STATUS\""
+  exit 254
+fi
 
 IFS=$'\n'
 
-for LINE in $STATUS
+for LINE in ${STATUS,,}
 do
-	IFS=$'\t'
+  IFS=$'\t'
 
-	LINE=( $LINE )
+  LINE=( $LINE )
 
   KEY=${LINE[0]}
   VALUE=${LINE[1]}

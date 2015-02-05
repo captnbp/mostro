@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 echo "---"
 echo "service: http_content"
@@ -9,8 +9,8 @@ then
   ARGUMENT="$1"
   shift
 else
-  echo "Missing argument."
-  exit 1
+  echo "error: Missing argument."
+  exit 254
 fi
 
 echo "argument: $ARGUMENT"
@@ -20,8 +20,8 @@ then
   URL="$1"
   shift
 else
-  echo "You need to pass a URL to cURL."
-  exit 1
+  echo "error: You need to pass a URL to cURL."
+  exit 254
 fi
 
 if [ -n "$1" ]
@@ -29,10 +29,15 @@ then
   STRING="$1"
   shift
 else
-  echo "You need to specify a string to find."
-  exit 1
+  echo "error: You need to specify a string to find."
+  exit 254
 fi
 
-COUNT=$(curl -s -f --max-time 8 $@ "$URL" | grep -c "$STRING")
+if ! CONTENT=$(curl -sS -f --max-time 8 $@ "$URL" 2>&1)
+then
+  echo "error: \"$CONTENT\""
+  exit 254
+fi
 
+COUNT=$(echo "$CONTENT" | grep "$STRING" | wc -l)
 echo "count: $COUNT"

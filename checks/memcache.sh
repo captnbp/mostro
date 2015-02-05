@@ -17,22 +17,26 @@ echo "argument: $ARGUMENT"
 
 IFS=$'\r\n'
 
-MEMCACHE_HOST=${MEMCACHE_HOST:-localhost}
+MEMCACHE_HOST=${MEMCACHE_HOST:-127.0.0.1}
 
-OUTPUT=$(echo -e "stats\nquit" | nc "$MEMCACHE_HOST" "$MEMCACHE_PORT")
+if ! OUTPUT=$(echo -e "stats\nquit" | nc -v "$MEMCACHE_HOST" "$MEMCACHE_PORT" 2>&1)
+then
+  echo "error: \"$OUTPUT\""
+  exit 254
+fi
 
 for LINE in $OUTPUT
 do
-	IFS=$' '
-	LINE=( $LINE )
+  IFS=$' '
+  LINE=( $LINE )
 
   KEY=${LINE[1]}
   VALUE=${LINE[2]}
 
-	if [ "${#D[@]}" = "3" ]
-	then
-		DATA+=(["${D[1]}"]="${D[2]}")
-	fi
+  if [ "${#D[@]}" = "3" ]
+  then
+    DATA+=(["${D[1]}"]="${D[2]}")
+  fi
 
   if [[ "$KEY" = "cmd_get" || "$KEY" = "cmd_set" || "$KEY" = "get_hits" || "$KEY" = "evictions" ]]
   then
