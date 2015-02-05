@@ -1,10 +1,10 @@
 #!/bin/bash
 
 function RUN() {
-  CHECK=$1
+  local CHECK=$1
   shift
 
-  OPTIONS="$@"
+  local OPTIONS="$@"
 
   if [[ -f "checks/$CHECK" ]]
   then
@@ -15,10 +15,21 @@ function RUN() {
 }
 
 function run_enabled_checks() {
+  local RETURN_CODE=0
+
   for CHECK in "${ENABLED_CHECKS[@]}"
   do
     run_check "$CHECK"
+
+    local CHECK_RETURN_CODE=$?
+
+    if [ $CHECK_RETURN_CODE -gt $RETURN_CODE ]
+    then
+      RETURN_CODE=$CHECK_RETURN_CODE
+    fi
   done
+
+  return $RETURN_CODE
 }
 
 function prefix_error() {
@@ -26,6 +37,8 @@ function prefix_error() {
 }
 
 function redirect_and_prefix_stderr_to_stdout() {
+  local LINE
+
   while read LINE
   do
     prefix_error "$LINE"
@@ -33,7 +46,8 @@ function redirect_and_prefix_stderr_to_stdout() {
 }
 
 function run_check() {
-  CHECK_WITH_OPTIONS=$1
+  local CHECK_WITH_OPTIONS=$1
+  local OUTPUT
 
   if hash timeout 2>/dev/null
   then
@@ -42,7 +56,7 @@ function run_check() {
     OUTPUT=$(/bin/sh -c "$CHECK_WITH_OPTIONS" 2> >(redirect_and_prefix_stderr_to_stdout))
   fi
 
-  RETURN_CODE=$?
+  local RETURN_CODE=$?
 
   # If the check doesn't start with a YAML delimiter, insert one
   if ! [[ "$OUTPUT" =~ ^--- ]]
@@ -52,13 +66,17 @@ function run_check() {
 
   echo "$OUTPUT"
 
-  if [[ "$RETURN_CODE" = "124" ]]
+  if [[ $RETURN_CODE = 124 ]]
   then
     prefix_error "Timeout after $TIMEOUT seconds while running: $CHECK_WITH_OPTIONS"
-  elif [[ "$RETURN_CODE" -gt "0" && "$RETURN_CODE" != "254" ]]
+    return 1
+  elif [[ $RETURN_CODE -gt 0 && $RETURN_CODE != 254 ]]
   then
     prefix_error "Error (return code: $RETURN_CODE) while running: $CHECK_WITH_OPTIONS"
+    return 1
   fi
+
+  return 0
 }
 
 PATH="$PATH:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
@@ -82,7 +100,6 @@ do
 done
 
 DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd )
-export DIR
 
 if [[ -z "$DIR" ]]
 then
@@ -131,7 +148,7 @@ fi
 if [[ "$DEBUG" = "1" ]]
 then
   run_enabled_checks
-  exit 0
+  exit $?
 fi
 
 if [[ "$JITTER" = "1" ]]
@@ -166,6 +183,7 @@ fi
 echo $$ >"$PIDFILE"
 
 CHECKS_OUTPUT=$(run_enabled_checks)
+CHECKS_RETURN_CODE=$?
 
 if [[ "$VERBOSE" = "1" ]]
 then
@@ -177,5 +195,18 @@ fi
 API_TIMESTAMP=$(date +"%s")
 
 echo -n "$CHECKS_OUTPUT" | curl $CURL_ARGS -sS -f --max-time 5 --retry 1 --retry-delay 2 --data-urlencode api_timestamp="$API_TIMESTAMP" --data-urlencode token="$TOKEN" --data-urlencode hostname="$HOST" --data-urlencode tags="$TAGS" --data-urlencode data@- "$ENDPOINT"/api/v1/events
+CURL_RETURN_CODE=$?
 
 rm -f "$PIDFILE"
+
+if [ $CHECKS_RETURN_CODE -gt 0 ]
+then
+  exit $CHECKS_RETURN_CODE
+fi
+
+if [ $CURL_RETURN_CODE -gt 0 ]
+then
+  exit $CURL_RETURN_CODE
+fi
+
+exit 0
