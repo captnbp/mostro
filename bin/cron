@@ -1,134 +1,212 @@
 #!/bin/bash
 
-DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd )
-export DIR
-cd "$DIR"
+function RUN() {
+  local CHECK=$1
+  shift
 
-if [ -z "$DIR" ]
-then
-	error_log "Unable to determine running directory."
-	exit 1
-fi
+  local OPTIONS="$@"
+
+  if [[ -f "checks/$CHECK" ]]
+  then
+    ENABLED_CHECKS+=("checks/$CHECK $OPTIONS")
+  else
+    ENABLED_CHECKS+=("$CHECK $OPTIONS")
+  fi
+}
+
+function run_enabled_checks() {
+  local RETURN_CODE=0
+
+  for CHECK in "${ENABLED_CHECKS[@]}"
+  do
+    run_check "$CHECK"
+
+    local CHECK_RETURN_CODE=$?
+
+    if [ $CHECK_RETURN_CODE -gt $RETURN_CODE ]
+    then
+      RETURN_CODE=$CHECK_RETURN_CODE
+    fi
+  done
+
+  return $RETURN_CODE
+}
+
+function prefix_error() {
+  echo "# ERROR: $1"
+}
+
+function redirect_and_prefix_stderr_to_stdout() {
+  local LINE
+
+  while read LINE
+  do
+    prefix_error "$LINE"
+  done
+}
+
+function run_check() {
+  local CHECK_WITH_OPTIONS=$1
+  local OUTPUT
+
+  if hash timeout 2>/dev/null
+  then
+    OUTPUT=$(timeout "$TIMEOUT" /bin/sh -c "$CHECK_WITH_OPTIONS" 2> >(redirect_and_prefix_stderr_to_stdout))
+  else
+    OUTPUT=$(/bin/sh -c "$CHECK_WITH_OPTIONS" 2> >(redirect_and_prefix_stderr_to_stdout))
+  fi
+
+  local RETURN_CODE=$?
+
+  # If the check doesn't start with a YAML delimiter, insert one
+  if ! [[ "$OUTPUT" =~ ^--- ]]
+  then
+    echo "---"
+  fi
+
+  echo "$OUTPUT"
+
+  if [[ $RETURN_CODE = 124 ]]
+  then
+    prefix_error "Timeout after $TIMEOUT seconds while running: $CHECK_WITH_OPTIONS"
+    return 1
+  elif [[ $RETURN_CODE -gt 0 && $RETURN_CODE != 254 ]]
+  then
+    prefix_error "Error (return code: $RETURN_CODE) while running: $CHECK_WITH_OPTIONS"
+    return 1
+  fi
+
+  return 0
+}
+
+PATH="$PATH:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
 
 DEBUG=0
 JITTER=1
 VERBOSE=0
-export API_TIMESTAMP=$(date +"%s")
-
-. "$DIR/bin/lib/helpers"
 
 for ARG in "$@"
 do
-	if [ "$ARG" = "--debug" ]
-	then
-		DEBUG=1
-	elif [ "$ARG" = "--no-jitter" ]
-	then
-		JITTER=0
-	elif [ "$ARG" = "--verbose" ]
-	then
-		VERBOSE=1
-	fi
+  if [[ "$ARG" = "--debug" || "$ARG" = "-d" ]]
+  then
+    DEBUG=1
+  elif [[ "$ARG" = "--no-jitter" ]]
+  then
+    JITTER=0
+  elif [[ "$ARG" = "--verbose" || "$ARG" = "-v" ]]
+  then
+    VERBOSE=1
+  fi
 done
 
-function verbose() {
-	[ "$VERBOSE" = "1" ]
-	return $?
-}
+DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd )
 
-function debug() {
-	[ "$DEBUG" = "1" ]
-	return $?
-}
-
-function jitter() {
-	[ "$JITTER" = "1" ]
-	return $?
-}
-
-if [ ! -f "$CONFIGURATION_FILE" ]
+if [[ -z "$DIR" ]]
 then
-	error_log "Missing configuration file."
-	exit 1
+  echo "Unable to determine working directory." 1>&2
+  exit 1
 fi
 
+cd "$DIR"
+
+CONFIGURATION_FILE="$DIR/mostro.conf"
+
+if [[ ! -f "$CONFIGURATION_FILE" ]]
+then
+  echo "Missing configuration file." 1>&2
+  exit 1
+fi
+
+ENABLED_CHECKS=()
+
+# All variables defined in the configuration file should be global and accessible by checks
 set -a
 
-. "$CONFIGURATION_FILE"
+source "$CONFIGURATION_FILE"
 
-if [ -z "$ENDPOINT" ]
+if [[ -z "$TOKEN" ]]
 then
-	ENDPOINT="https://api.mostro.com"
+  echo "No authentication token specified" 1>&2
+  exit 1
 fi
 
-if [ -z "$HOST" ]
+if [[ -z "$TIMEOUT" ]]
 then
-	HOST=$HOSTNAME
-
-	if [ -z "$HOST" ]
-	then
-		error_log "Invalid hostname"
-		exit 1
-	fi
+  TIMEOUT=15
 fi
 
-if [ -z "$TOKEN" ]
+if [[ -z "$ENDPOINT" ]]
 then
-	error_log "No authentication token specified"
-	exit 1
+  ENDPOINT="https://api.mostro.com"
 fi
 
-if debug
+if [[ -z "$HOST" ]]
 then
-	run_enabled_checks
-else
-	if jitter
-	then
-		if hash cksum 2>/dev/null
-		then
-			# To reduce the load of servers reporting all at the same time,
-			# we sleep between 0 and 30 seconds before running the checks.
-			# The amount of time is determined from the server hostname, which
-			# makes sure it's consistent between runs.
-			JITTER=$(( $(echo "$HOST" | cksum | cut -c"1-6") % 30 ))
-
-			if [ "$JITTER" -gt 0 ]
-			then
-				if verbose
-				then
-					error_log "Sleeping $JITTER seconds..."
-				fi
-
-				sleep $JITTER
-			fi
-		fi
-	fi
-
-	PIDFILE="$DIR/mostro_cron.pid"
-
-	if [ -e "${PIDFILE}" ] && (ps -p "$(<"${PIDFILE}")" > /dev/null); then
-		error_log "Cron already running."
-		exit 1
-	fi
-
-	echo $$>"$PIDFILE"
-
-	if verbose
-	then
-		TEE_OUTPUT="/dev/stderr"
-		CURL_ARGS="-v"
-	else
-		TEE_OUTPUT="/dev/null"
-	fi
-
-	run_enabled_checks | tee "$TEE_OUTPUT" | curl $CURL_ARGS -sS -f --max-time 5 --retry 1 --retry-delay 5 --data-urlencode api_timestamp="$API_TIMESTAMP" --data-urlencode token="$TOKEN" --data-urlencode hostname="$HOST" --data-urlencode tags="$TAGS" --data-urlencode data@- "$ENDPOINT"/api/v1/events > /dev/null
-
-	RETURN_CODES=( ${PIPESTATUS[@]} )
-
-	update_return_code ${RETURN_CODES[0]}
-	update_return_code ${RETURN_CODES[2]}
-
-	rm -f "$PIDFILE"
+  HOST=$HOSTNAME
 fi
 
-exit "$GLOBALRETURNCODE"
+if [[ "$DEBUG" = "1" ]]
+then
+  run_enabled_checks
+  exit $?
+fi
+
+if [[ "$JITTER" = "1" ]]
+then
+  if hash cksum 2>/dev/null
+  then
+    # To reduce the load of servers reporting all at the same time,
+    # we sleep between 0 and 30 seconds before running the checks.
+    # The amount of time is determined from the server hostname, which
+    # makes sure it's consistent between runs.
+    DELAY=$(( $(echo "$HOST" | cksum | cut -c"1-6") % 30 ))
+
+    if [[ "$DELAY" -gt 0 ]]
+    then
+      if [[ "$VERBOSE" = "1" ]]
+      then
+        echo "Sleeping $DELAY seconds..." 1>&2
+      fi
+
+      sleep $DELAY
+    fi
+  fi
+fi
+
+PIDFILE="$DIR/mostro_cron.pid"
+
+if [[ -e "$PIDFILE" ]] && (ps -p "$(<"$PIDFILE")" >/dev/null 2>&1); then
+  echo "Cron already running." 1>&2
+  exit 1
+fi
+
+echo $$ >"$PIDFILE"
+
+CHECKS_OUTPUT=$(run_enabled_checks)
+CHECKS_RETURN_CODE=$?
+
+if [[ "$VERBOSE" = "1" ]]
+then
+  echo "$CHECKS_OUTPUT"
+  echo
+  CURL_ARGS="-v"
+fi
+
+API_TIMESTAMP=$(date +"%s")
+
+echo -n "$CHECKS_OUTPUT" | curl $CURL_ARGS -sS -f --max-time 5 --retry 1 --retry-delay 2 --data-urlencode api_timestamp="$API_TIMESTAMP" --data-urlencode token="$TOKEN" --data-urlencode hostname="$HOST" --data-urlencode tags="$TAGS" --data-urlencode data@- "$ENDPOINT"/api/v1/events
+CURL_RETURN_CODE=$?
+
+rm -f "$PIDFILE"
+
+if [ $CHECKS_RETURN_CODE -gt 0 ]
+then
+  exit $CHECKS_RETURN_CODE
+fi
+
+if [ $CURL_RETURN_CODE -gt 0 ]
+then
+  exit $CURL_RETURN_CODE
+fi
+
+exit 0
