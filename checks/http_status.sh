@@ -31,4 +31,4 @@ function log_error () {
   fi
 }
 
-curl -o /dev/null -w "$FORMAT" --stderr >(log_error) -sS -f --max-time 8 $@ "$URL" || true
+curl -o /dev/null -w "$FORMAT" --stderr >(log_error) -sS --max-time 8 $@ "$URL" || true
