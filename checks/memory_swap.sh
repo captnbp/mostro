@@ -2,7 +2,6 @@
 
 echo "---"
 echo "service: memory_swap"
-echo "version: 2014120901"
 
 MEMINFO=$(</proc/meminfo)
 

@@ -13,7 +13,6 @@ stats = Sidekiq::Stats.new
 
 puts "---"
 puts "service: sidekiq_stats"
-puts "version: 2014120901"
 puts "processed: #{stats.processed}"
 puts "failed: #{stats.failed}"
 puts "enqueued: #{stats.enqueued}"

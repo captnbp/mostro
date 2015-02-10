@@ -5,7 +5,6 @@
 
 echo "---"
 echo "service: nagios_check"
-echo "version: 2014121601"
 
 ARGUMENT="$1"
 shift
