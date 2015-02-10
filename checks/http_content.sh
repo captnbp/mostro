@@ -2,7 +2,6 @@
 
 echo "---"
 echo "service: http_content"
-echo "version: 2014120901"
 
 if [ -n "$1" ]
 then

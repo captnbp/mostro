@@ -2,7 +2,6 @@
 
 echo "---"
 echo "service: http_status"
-echo "version: 2014120901"
 
 ARGUMENT=${1:-default}
 shift

@@ -2,7 +2,6 @@
 
 echo "---"
 echo "service: disk_space"
-echo "version: 2014120901"
 
 if [ -z "$1" ]
 then

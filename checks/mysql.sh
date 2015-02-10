@@ -2,7 +2,6 @@
 
 echo "---"
 echo "service: mysql"
-echo "version: 2014120901"
 
 MYSQL_HOST=${MYSQL_HOST:-localhost}
 

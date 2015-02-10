@@ -2,7 +2,6 @@
 
 echo "---"
 echo "service: memcache"
-echo "version: 2014120901"
 
 MEMCACHE_PORT=${1:-11211}
 

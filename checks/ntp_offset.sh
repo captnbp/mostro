@@ -2,7 +2,6 @@
 
 echo "---"
 echo "service: ntp_offset"
-echo "version: 2014120901"
 
 PEERS=$(ntpq -nc peers 2>&1)
 

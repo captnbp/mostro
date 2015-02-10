@@ -16,7 +16,6 @@ queue = Sidekiq::Queue.new(queue_name)
 
 puts "---"
 puts "service: sidekiq_queue"
-puts "version: 2014120901"
 puts "argument: #{queue_name}"
 puts "queue_size: #{queue.size}"
 puts "queue_latency: #{queue.latency}"
