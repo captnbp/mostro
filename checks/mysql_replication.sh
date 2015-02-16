@@ -5,7 +5,17 @@ echo "service: mysql_replication"
 
 MYSQL_HOST=${MYSQL_HOST:-localhost}
 
-if ! STATUS=$(mysql --host="$MYSQL_HOST" --user="$MYSQL_USER" --password="$MYSQL_PASSWORD" -e "SHOW SLAVE STATUS\G" 2>&1)
+if [[ -n "$MYSQL_USER" ]]
+then
+  MYSQL_USER="--user=$MYSQL_USER"
+fi
+
+if [[ -n "$MYSQL_PASSWORD" ]]
+then
+  MYSQL_PASSWORD="--password=$MYSQL_PASSWORD"
+fi
+
+if ! STATUS=$(mysql --host="$MYSQL_HOST" $MYSQL_USER $MYSQL_PASSWORD -e "SHOW SLAVE STATUS\G" 2>&1)
 then
   echo "error: \"$STATUS\""
   exit 254
