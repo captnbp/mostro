@@ -5,7 +5,7 @@ echo "service: redis"
 
 REDIS_PORT=${1:-6379}
 
-if [ -n "$REDIS_HOST" ]
+if [[ -n "$REDIS_HOST" ]]
 then
   ARGUMENT="${REDIS_HOST}:${REDIS_PORT}"
 else
@@ -18,9 +18,7 @@ REDIS_HOST=${REDIS_HOST:-localhost}
 
 COMMAND="redis-cli -h $REDIS_HOST -p $REDIS_PORT"
 
-OLDIFS=$IFS
-
-if [ -n "$REDIS_PASSWORD" ]
+if [[ -n "$REDIS_PASSWORD" ]]
 then
   COMMAND="$COMMAND -a ${REDIS_PASSWORD}"
 fi
@@ -39,22 +37,44 @@ do
   KEY=${LINE[0]}
   VALUE=${LINE[1]}
 
-  if [[ "$KEY" = "evicted_keys" || "$KEY" = "used_memory" || "$KEY" = "used_memory_rss" ]]
+  if [[ "$KEY" = "last_save_time" ]]
+  then
+    KEY="rdb_last_save_time"
+  fi
+
+  if [[ "$KEY" = "last_bgsave_status" ]]
+  then
+    KEY="rdb_last_bgsave_status"
+  fi
+
+  if [[ "$KEY" = "rdb_last_bgsave_status" || "$KEY" = "aof_last_bgrewrite_status" ]]
+  then
+    if [[ "$VALUE" =~ ok ]]
+    then
+      VALUE=1
+    else
+      VALUE=0
+    fi
+  fi
+
+  if [[ \
+    "$KEY" = "connected_clients" || \
+    "$KEY" = "used_memory" || \
+    "$KEY" = "used_memory_rss" || \
+    "$KEY" = "rdb_last_save_time" || \
+    "$KEY" = "rdb_last_bgsave_status" || \
+    "$KEY" = "aof_enabled" || \
+    "$KEY" = "aof_last_bgrewrite_status" || \
+    "$KEY" = "total_connections_received" || \
+    "$KEY" = "total_commands_processed" || \
+    "$KEY" = "rejected_connections" || \
+    "$KEY" = "expired_keys" || \
+    "$KEY" = "evicted_keys" || \
+    "$KEY" = "keyspace_hits" || \
+    "$KEY" = "keyspace_misses" || \
+    "$KEY" = "connected_slaves"
+  ]]
   then
     echo "${KEY}: ${VALUE}"
   fi
 done
-
-IFS=$OLDIFS
-
-if ! SLOWLOG=$($COMMAND --csv slowlog get 1 2>&1)
-then
-  echo "error: \"$SLOWLOG\""
-  exit 254
-fi
-
-IFS=','
-
-SLOWLOG=( $SLOWLOG )
-
-echo "slowlog_index: ${SLOWLOG[0]:-0}"
