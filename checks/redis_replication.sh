@@ -5,7 +5,7 @@ echo "service: redis_replication"
 
 REDIS_PORT=${1:-6379}
 
-if [ -n "$REDIS_HOST" ]
+if [[ -n "$REDIS_HOST" ]]
 then
   ARGUMENT="${REDIS_HOST}:${REDIS_PORT}"
 else
@@ -18,7 +18,7 @@ REDIS_HOST=${REDIS_HOST:-localhost}
 
 COMMAND="redis-cli -h $REDIS_HOST -p $REDIS_PORT"
 
-if [ -n "$REDIS_PASSWORD" ]
+if [[ -n "$REDIS_PASSWORD" ]]
 then
   COMMAND="$COMMAND -a ${REDIS_PASSWORD}"
 fi
@@ -37,18 +37,18 @@ do
   KEY=${LINE[0]}
   VALUE=${LINE[1]}
 
-  if [ "$KEY" = "master_last_io_seconds_ago" ]
-  then
-    echo "${KEY}: ${VALUE}"
-  fi
-
   if [ "$KEY" = "master_link_status" ]
   then
     if [[ "$VALUE" =~ up ]]
     then
-      echo "${KEY}: 1"
+      VALUE=1
     else
-      echo "${KEY}: 0"
+      VALUE=0
     fi
+  fi
+
+  if [[ "$KEY" = "master_last_io_seconds_ago" || "$KEY" = "master_link_status" ]]
+  then
+    echo "${KEY}: ${VALUE}"
   fi
 done

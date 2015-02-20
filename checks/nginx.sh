@@ -16,7 +16,7 @@ fi
 for LINE in $OUTPUT
 do
   REGEX_ACTIVE="Active connections: ([0-9]+)"
-  REGEX_CONNECTIONS=" ([0-9]+) ([0-9]+) ([0-9]+)"
+  REGEX_CONNECTIONS="^ ([0-9]+) ([0-9]+) ([0-9]+)"
 
   if [[ "$LINE" =~ $REGEX_ACTIVE ]]
   then
@@ -25,5 +25,9 @@ do
   then
     echo "total_connections: ${BASH_REMATCH[1]}"
     echo "total_requests: ${BASH_REMATCH[3]}"
+    exit 0
   fi
 done
+
+echo "error: \"Couldn't retrieve statistics from Nginx\""
+exit 254
