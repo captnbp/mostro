@@ -50,5 +50,5 @@ function display_time {
 
 if ! OUTPUT=$(echo -n | command time -o >(display_time) --quiet -f "%e" nc -w "$TCP_TIMEOUT" -v "$TCP_HOST" "$1" 2>&1 >/dev/null)
 then
-  echo "error: \"$OUTPUT\""
+  echo "error: \"${OUTPUT#nc: }\""
 fi
