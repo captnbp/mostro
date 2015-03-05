@@ -7,11 +7,11 @@ while getopts :h:t: OPT
 do
   case $OPT in
     h)
-      HOST="$OPTARG"
+      TCP_HOST="$OPTARG"
       ;;
 
     t)
-      TIMEOUT="$OPTARG"
+      TCP_TIMEOUT="$OPTARG"
       ;;
   esac
 done
@@ -24,19 +24,19 @@ then
   exit 254
 fi
 
-PORT="$1"
-ARGUMENT="$PORT"
+TCP_PORT="$1"
+ARGUMENT="$TCP_PORT"
 
-if [ -n "$HOST" ]
+if [ -n "$TCP_HOST" ]
 then
-  ARGUMENT="$HOST:$PORT"
+  ARGUMENT="$TCP_HOST:$TCP_PORT"
 else
-  HOST="127.0.0.1"
+  TCP_HOST="127.0.0.1"
 fi
 
-if [ -z "$TIMEOUT" ]
+if [ -z "$TCP_TIMEOUT" ]
 then
-  TIMEOUT="5"
+  TCP_TIMEOUT="5"
 fi
 
 echo "argument: $ARGUMENT"
@@ -48,7 +48,7 @@ function display_time {
   echo "time_total: $TIME" >&3
 }
 
-if ! OUTPUT=$(echo -n | command time -o >(display_time) --quiet -f "%e" nc -w "$TIMEOUT" -v "$HOST" "$1" 2>&1 >/dev/null)
+if ! OUTPUT=$(echo -n | command time -o >(display_time) --quiet -f "%e" nc -w "$TCP_TIMEOUT" -v "$TCP_HOST" "$1" 2>&1 >/dev/null)
 then
   echo "error: \"$OUTPUT\""
 fi
