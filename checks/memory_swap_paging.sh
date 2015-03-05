@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+set -o pipefail
+
 echo "---"
 echo "service: memory_swap_paging"
 
