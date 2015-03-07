@@ -6,12 +6,13 @@
 # You can find it in the interface (Settings > Organization).
 TOKEN=
 
-# By default, the server name in Mostro is using your server's hostname.
-# You can override the value here.
+# By default, your server will report using its default hostname (from the
+# `hostname` command). If you want to set a more explicit name, you can set
+# it with this variable.
 # HOST=
 
-# You can provide a list of tags, separated by commas, to apply
-# specific rules to some of your servers.
+# This is a list of comma-separated tags. These tags allow you to set specific
+# thresholds in the triggers section for some of your servers.
 # TAGS=sql,web,staging
 
 ##############################################################################
@@ -69,29 +70,45 @@ TOKEN=
 ##############################################################################
 
 # HTTP Status
+#
 # RUN http_status.sh [check_name] [url] [curl_options]
 
-# Without argument, the script will check the status for the local web server.
+# This check monitors a HTTP response.
+# Without argument, the script will check the status of http://localhost/
+#
 # RUN http_status.sh
 
-# With this configuration, the check will return the status for
-# http://www.mostro.com/ and will show up in the interface
-# as "HTTP Status: Homepage".
+# You can specify arguments for more complex tests.
+#
+# In this example, he first argument ("Homepage") is used in the Mostro
+# interface as a memorable name. The second argument is the URL
+# that will be tested.
+#
 # RUN http_status.sh "Homepage" "http://www.mostro.com/"
 
-# It is also possible to pass parameters to curl. In this example, curl would
-# bypass the DNS and try to fetch http://www.mostro.com/ from localhost.
-# This is useful if you have a load-balancing setup and want to try each
-# webserver independently.
+# The check uses [curl](http://curl.haxx.se) to connect to the website.
+#
+# You can pass options to curl after the arguments. In this example,
+# the curl --resolve option (http://curl.haxx.se/docs/manpage.html#--resolve)
+# is used to force the check to connect to the local server instead of
+# using the DNS record. This is useful in a load-balancing setup and you need
+# to test each webserver independently.
+#
 # RUN http_status.sh "Homepage" "http://www.mostro.com/" --resolve 'www.mostro.com:80:127.0.0.1'
 
 
 # HTTP Content
+#
 # RUN http_content.sh check_name url string_to_look_for [curl_options]
 
-# In this example, the check would look for the string "Forgot your password"
+# This check looks for a specific string in a page.
+# It can be used to make sure a website is rendered correctly, and that the
+# application doesn't return a white page or a corrupted cache.
+
+# In the example, the check will be called "Sign-in" in the Mostro dashboard.
+# It will count the number of occurences of "Forgot your password"
 # on the sign-in page.
-# It will show up in the interface as "HTTP Content: Sign-in"
+#
 # RUN http_content.sh "Sign-in" "https://www.mostro.com/users/sign_in" "Forgot your password"
 
 ##############################################################################
@@ -100,12 +117,18 @@ TOKEN=
 
 # MEMCACHE_HOST=localhost
 
-# Memcache status
 # RUN memcache.sh
 
-# You can pass a port as argument if you have multiple instances of memcache
 # RUN memcache.sh 11211
 # RUN memcache.sh 11212
+
+# Without argument, the default port (11211) is used.
+#
+# If you have multiple instances of memcached on different ports you can
+# duplicate the line.
+#
+# By default, the check connects to localhost. You can change the
+# `MEMCACHE_HOST` if you need to connect to a specific host instead.
 
 ##############################################################################
 # MySQL                                                                      #

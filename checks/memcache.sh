@@ -3,6 +3,17 @@
 echo "---"
 echo "service: memcache"
 
+while getopts :h: OPT
+do
+  case $OPT in
+    h)
+      MEMCACHE_HOST="$OPTARG"
+      ;;
+  esac
+done
+
+shift $((OPTIND-1))
+
 MEMCACHE_PORT=${1:-11211}
 
 if [ -n "$MEMCACHE_HOST" ]
@@ -18,9 +29,9 @@ IFS=$'\r\n'
 
 MEMCACHE_HOST=${MEMCACHE_HOST:-127.0.0.1}
 
-if ! OUTPUT=$(echo -e "stats settings\nstats slabs\nstats\nquit" | nc -v "$MEMCACHE_HOST" "$MEMCACHE_PORT" 2>&1)
+if ! OUTPUT=$(echo -e "stats settings\nstats slabs\nstats\nquit" | nc -v -q0 -w5 "$MEMCACHE_HOST" "$MEMCACHE_PORT" 2>&1)
 then
-  echo "error: \"$OUTPUT\""
+  echo "error: \"${OUTPUT#nc: }\""
   exit 254
 fi
 
