@@ -12,15 +12,16 @@ then
 fi
 
 OFFSET=0
-CONNECTED=0
 
 if [[ "$VARIABLES" =~ offset=([-\.0-9]+) ]]
 then
   OFFSET=${BASH_REMATCH[1]}
 fi
 
-if [[ "$VARIABLES" =~ refid=[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} ]]
+if [[ "$VARIABLES" =~ peer=0, ]]
 then
+  CONNECTED=0
+else
   CONNECTED=1
 fi
 
