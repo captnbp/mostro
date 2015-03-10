@@ -3,16 +3,34 @@
 echo "---"
 echo "service: mysql"
 
-MYSQL_HOST=${MYSQL_HOST:-localhost}
+while getopts :h:u:p: OPT
+do
+  case $OPT in
+    h)
+      MYSQL_HOST="$OPTARG"
+      ;;
+    u)
+      MYSQL_USER="$OPTARG"
+      ;;
+    p)
+      MYSQL_PASSWORD="$OPTARG"
+      ;;
+  esac
+done
+
+if [[ -z "$MYSQL_HOST" ]]
+then
+  MYSQL_HOST="localhost"
+fi
 
 if [[ -n "$MYSQL_USER" ]]
 then
-  MYSQL_USER="--user=$MYSQL_USER"
+  MYSQL_USER="--user='${MYSQL_USER}'"
 fi
 
 if [[ -n "$MYSQL_PASSWORD" ]]
 then
-  MYSQL_PASSWORD="--password=$MYSQL_PASSWORD"
+  MYSQL_PASSWORD="--password='${MYSQL_PASSWORD}'"
 fi
 
 if ! STATUS=$(mysql --host="$MYSQL_HOST" $MYSQL_USER $MYSQL_PASSWORD -e "SHOW GLOBAL VARIABLES; SHOW GLOBAL STATUS" 2>&1)
