@@ -3,7 +3,7 @@
 echo "---"
 echo "service: cpu"
 
-PROCSTAT=$(grep '^cpu\s' /proc/stat)
+PROCSTAT=$(grep '^cpu ' /proc/stat)
 PROCSTAT=( $PROCSTAT )
 
 echo "cpu_cycles_user: ${PROCSTAT[1]}"
