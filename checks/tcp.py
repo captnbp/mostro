@@ -41,5 +41,5 @@ except socket.error as (code, reason):
     sys.exit(254)
 finally:
     end_time = datetime.datetime.now()
-    time_total = (end_time - start_time).total_seconds()
-    print("time_total: %f" % time_total)
+    time_total = end_time - start_time
+    print("time_total: %d.%06d" % (time_total.seconds, time_total.microseconds))
