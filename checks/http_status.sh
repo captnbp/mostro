@@ -21,6 +21,15 @@ shift
 
 echo "argument: $ARGUMENT"
 
+if [ "$ARGUMENT" != "default" ]
+then
+  if [ -z "$1" ]
+  then
+    echo "error: No URL specified"
+    exit 254
+  fi
+fi
+
 URL=${1:-"http://localhost/"}
 shift
 
