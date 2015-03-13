@@ -3,6 +3,19 @@
 echo "---"
 echo "service: http_status"
 
+CURL_TIMEOUT="8"
+
+while getopts :t: OPT
+do
+  case $OPT in
+    t)
+      CURL_TIMEOUT="$OPTARG"
+      ;;
+  esac
+done
+
+shift $(( OPTIND - 1 ))
+
 ARGUMENT=${1:-default}
 shift
 
@@ -34,4 +47,4 @@ function log_error {
 
 coproc log_error
 
-curl -o /dev/null -w "$FORMAT" -sS --max-time 8 $@ "$URL" 2>&"${COPROC[1]}" || true
+curl -o /dev/null -w "$FORMAT" -sS --max-time "$CURL_TIMEOUT" $@ "$URL" 2>&"${COPROC[1]}" || true
