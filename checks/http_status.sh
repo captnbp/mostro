@@ -44,16 +44,10 @@ time_total: %{time_total}\n
 EOF
 
 exec 3>&1
+ERROR=$(curl -o /dev/null -w "$FORMAT" -sS --max-time "$CURL_TIMEOUT" $@ "$URL" 2>&1 1>&3)
 
-function log_error {
-  read ERROR
-
-  if [ -n "$ERROR" ]
-  then
-    echo "error: \"${ERROR#curl: \([[:digit:]]*\) }\"" >&3
-  fi
-}
-
-coproc log_error
-
-curl -o /dev/null -w "$FORMAT" -sS --max-time "$CURL_TIMEOUT" $@ "$URL" 2>&"${COPROC[1]}" || true
+if [ "$?" != "0" ]
+then
+  echo "error: \"${ERROR#curl: \([[:digit:]]*\) }\""
+  exit 254
+fi
