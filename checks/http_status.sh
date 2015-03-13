@@ -21,13 +21,17 @@ time_starttransfer: %{time_starttransfer}
 time_total: %{time_total}\n
 EOF
 
-function log_error () {
-  ERROR=$(</dev/stdin)
+exec 3>&1
+
+function log_error {
+  read ERROR
 
   if [ -n "$ERROR" ]
   then
-    echo "error: \"$ERROR\""
+    echo "error: \"${ERROR#curl: \([[:digit:]]*\) }\"" >&3
   fi
 }
 
-curl -o /dev/null -w "$FORMAT" --stderr >(log_error) -sS --max-time 8 $@ "$URL" || true
+coproc log_error
+
+curl -o /dev/null -w "$FORMAT" -sS --max-time 8 $@ "$URL" 2>&"${COPROC[1]}" || true
