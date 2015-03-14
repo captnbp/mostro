@@ -3,6 +3,19 @@
 echo "---"
 echo "service: http_content"
 
+CURL_TIMEOUT="8"
+
+while getopts :t: OPT
+do
+  case $OPT in
+    t)
+      CURL_TIMEOUT="$OPTARG"
+      ;;
+  esac
+done
+
+shift $(( OPTIND - 1 ))
+
 if [ -n "$1" ]
 then
   ARGUMENT="$1"
@@ -32,9 +45,9 @@ else
   exit 254
 fi
 
-if ! CONTENT=$(curl -sS -f --max-time 8 $@ "$URL" 2>&1)
+if ! CONTENT=$(curl -sS -f --max-time "$CURL_TIMEOUT" $@ "$URL" 2>&1)
 then
-  echo "error: \"$CONTENT\""
+  echo "error: \"${CONTENT#curl: \([[:digit:]]*\) }\""
   exit 254
 fi
 
