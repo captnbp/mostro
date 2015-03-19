@@ -64,12 +64,22 @@ function confirm () {
     read -n1 -p "] " CONFIRMATION
   fi
 
-  if [[ ! -z "$CONFIRMATION" ]]
+  if [[ -n "$CONFIRMATION" ]]
   then
     echo
+
+    if [[ "$CONFIRMATION" = "n" ]]
+    then
+      CONFIRMATION="N"
+    fi
+
+    if [[ "$CONFIRMATION" = "y" ]]
+    then
+      CONFIRMATION="Y"
+    fi
   fi
 
-  if [[ "$CONFIRMATION" = "$OTHER" || "$CONFIRMATION" = "${OTHER,,}" ]]
+  if [[ "$CONFIRMATION" = "$OTHER" ]]
   then
     return 1
   else
