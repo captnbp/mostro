@@ -177,7 +177,7 @@ function detect_partitions {
   #  /dev/sda1   /
   #  UUID=test   /
   #  LABEL=test  /
-  awk 'match($1, /^(\/|[A-Z]+=)/) && match($2, /^\//) { print $2 }' /etc/fstab
+  awk 'match($1, /^(\/|[A-Z]+=)/) && match($2, /^\//) && !match($2, /^\/media/) && !match($2, /^\/mnt/) { print $2 }' /etc/fstab
 }
 
 function detect_interfaces {
