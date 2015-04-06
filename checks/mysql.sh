@@ -117,6 +117,19 @@ do
     "$KEY" = "tmp_table_size"
   ]]
   then
+    if [ "$KEY" = "query_cache_type" ]
+    then
+      if [ "$VALUE" = "on" ]
+      then
+        VALUE=1
+      elif [ "$VALUE" = "demand" ]
+      then
+        VALUE=2
+      else
+        VALUE=0
+      fi
+    fi
+
     echo "${KEY}: ${VALUE}"
   fi
 done
