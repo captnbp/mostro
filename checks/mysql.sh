@@ -86,6 +86,7 @@ do
     "$KEY" = "key_read_requests" || \
     "$KEY" = "key_reads" || \
     "$KEY" = "max_connections" || \
+    "$KEY" = "max_heap_table_size" || \
     "$KEY" = "open_files" || \
     "$KEY" = "open_files_limit" || \
     "$KEY" = "open_tables" || \
@@ -93,9 +94,14 @@ do
     "$KEY" = "qcache_free_blocks" || \
     "$KEY" = "qcache_free_memory" || \
     "$KEY" = "qcache_hits" || \
+    "$KEY" = "qcache_inserts" || \
     "$KEY" = "qcache_lowmem_prunes" || \
+    "$KEY" = "qcache_not_cached" || \
+    "$KEY" = "qcache_queries_in_cache" || \
     "$KEY" = "qcache_total_blocks" || \
+    "$KEY" = "query_cache_min_res_unit" || \
     "$KEY" = "query_cache_size" || \
+    "$KEY" = "query_cache_type" || \
     "$KEY" = "questions" || \
     "$KEY" = "select_full_join" || \
     "$KEY" = "select_range_check" || \
@@ -107,7 +113,8 @@ do
     "$KEY" = "table_locks_waited" || \
     "$KEY" = "table_open_cache" || \
     "$KEY" = "threads_connected" || \
-    "$KEY" = "threads_created"
+    "$KEY" = "threads_created" || \
+    "$KEY" = "tmp_table_size"
   ]]
   then
     echo "${KEY}: ${VALUE}"
