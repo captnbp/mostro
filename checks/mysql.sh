@@ -25,12 +25,12 @@ fi
 
 if [[ -n "$MYSQL_USER" ]]
 then
-  MYSQL_USER="--user='${MYSQL_USER}'"
+  MYSQL_USER="--user=${MYSQL_USER}"
 fi
 
 if [[ -n "$MYSQL_PASSWORD" ]]
 then
-  MYSQL_PASSWORD="--password='${MYSQL_PASSWORD}'"
+  MYSQL_PASSWORD="--password=${MYSQL_PASSWORD}"
 fi
 
 if ! STATUS=$(mysql --host="$MYSQL_HOST" $MYSQL_USER $MYSQL_PASSWORD -e "SHOW GLOBAL VARIABLES; SHOW GLOBAL STATUS" 2>&1)
