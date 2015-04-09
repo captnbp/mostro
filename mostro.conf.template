@@ -117,10 +117,10 @@ TOKEN=
 
 # MEMCACHE_HOST=localhost
 
-# RUN memcache.sh
+# RUN memcache.py
 
-# RUN memcache.sh 11211
-# RUN memcache.sh 11212
+# RUN memcache.py 11211
+# RUN memcache.py 11212
 
 # Without argument, the default port (11211) is used.
 #

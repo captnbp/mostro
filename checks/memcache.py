@@ -64,6 +64,6 @@ try:
 except socket.timeout:
     print "error: Connection timed out"
     sys.exit(254)
-except socket.error as (code, reason):
-    print("error: \"%s\"" % reason)
+except socket.error, error:
+    print("error: \"%s\"" % error[1])
     sys.exit(254)
