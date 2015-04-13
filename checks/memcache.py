@@ -40,13 +40,13 @@ try:
     sock.connect((options.host, options.port))
 
     sock.send("stats settings\n")
-    data += sock.recv(4096)
-
-    sock.send("stats slabs\n")
-    data += sock.recv(4096)
+    data += sock.recv(16384)
 
     sock.send("stats\n")
-    data += sock.recv(4096)
+    data += sock.recv(16384)
+
+    sock.send("stats slabs\n")
+    data += sock.recv(16384)
 
     sock.close()
 
