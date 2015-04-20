@@ -63,6 +63,7 @@ do
     "$KEY" = "com_rollback" || \
     "$KEY" = "com_select" || \
     "$KEY" = "com_update" || \
+    "$KEY" = "connect_timeout" || \
     "$KEY" = "connections" || \
     "$KEY" = "created_tmp_disk_tables" || \
     "$KEY" = "created_tmp_tables" || \
@@ -85,7 +86,9 @@ do
     "$KEY" = "key_cache_block_size" || \
     "$KEY" = "key_read_requests" || \
     "$KEY" = "key_reads" || \
+    "$KEY" = "max_connect_errors" || \
     "$KEY" = "max_connections" || \
+    "$KEY" = "max_used_connections" || \
     "$KEY" = "max_heap_table_size" || \
     "$KEY" = "open_files" || \
     "$KEY" = "open_files_limit" || \
@@ -105,6 +108,7 @@ do
     "$KEY" = "questions" || \
     "$KEY" = "select_full_join" || \
     "$KEY" = "select_range_check" || \
+    "$KEY" = "skip_name_resolve" || \
     "$KEY" = "slow_queries" || \
     "$KEY" = "sort_merge_passes" || \
     "$KEY" = "sort_range" || \
@@ -113,6 +117,7 @@ do
     "$KEY" = "table_locks_waited" || \
     "$KEY" = "table_open_cache" || \
     "$KEY" = "threads_connected" || \
+    "$KEY" = "thread_cache_size" || \
     "$KEY" = "threads_created" || \
     "$KEY" = "tmp_table_size"
   ]]
