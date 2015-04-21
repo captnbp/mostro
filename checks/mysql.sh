@@ -81,6 +81,7 @@ do
     "$KEY" = "innodb_buffer_pool_write_requests" || \
     "$KEY" = "innodb_log_waits" || \
     "$KEY" = "innodb_log_writes" || \
+    "$KEY" = "interactive_timeout" || \
     "$KEY" = "key_blocks_unused" || \
     "$KEY" = "key_buffer_size" || \
     "$KEY" = "key_cache_block_size" || \
@@ -119,7 +120,8 @@ do
     "$KEY" = "threads_connected" || \
     "$KEY" = "thread_cache_size" || \
     "$KEY" = "threads_created" || \
-    "$KEY" = "tmp_table_size"
+    "$KEY" = "tmp_table_size" || \
+    "$KEY" = "wait_timeout"
   ]]
   then
     if [ "$KEY" = "query_cache_type" ]
