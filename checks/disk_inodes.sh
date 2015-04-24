@@ -19,5 +19,11 @@ fi
 
 DATA=( $DATA )
 
+if [[ "${DATA[0]}" = "0" ]]
+then
+  echo "error: The filesystem doesn't use inodes."
+  exit 254
+fi
+
 echo "free_inodes: ${DATA[1]}"
 echo "total_inodes: ${DATA[0]}"
