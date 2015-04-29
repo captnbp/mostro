@@ -151,10 +151,6 @@ TOKEN=
 # MySQL                                                                      #
 ##############################################################################
 
-# MYSQL_HOST=localhost
-# MYSQL_USER=monitoring
-# MYSQL_PASSWORD=monitoring_secret
-
 # You need to create a user with limited rights:
 # GRANT USAGE ON *.* TO monitoring@localhost IDENTIFIED BY 'monitoring_secret'
 
@@ -162,10 +158,12 @@ TOKEN=
 # GRANT REPLICATION CLIENT ON *.* TO monitoring@localhost
 
 # MySQL status
-# RUN mysql.sh
+#
+# RUN mysql.sh -u user -p password
 
 # Check MySQL replication on a slave server
-# RUN mysql_replication.sh
+#
+# RUN mysql_replication.sh -u user -p password
 
 ##############################################################################
 # nginx                                                                      #
