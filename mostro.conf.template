@@ -151,7 +151,7 @@ TOKEN=
 # MySQL                                                                      #
 ##############################################################################
 
-# You need to create a user with limited rights:
+# You need to create a user with limited privileges:
 # GRANT USAGE ON *.* TO monitoring@localhost IDENTIFIED BY 'monitoring_secret'
 
 # If you want to check the replication status, you need to add a privilege:
