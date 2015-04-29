@@ -66,6 +66,23 @@ TOKEN=
 # RUN ntp_offset.sh
 
 ##############################################################################
+# TCP Ping                                                                   #
+##############################################################################
+
+# TCP Ping
+#
+# RUN tcp.py [-h host] [-t timeout] port
+
+# This check tries to connect to a TCP port. In this example, we test
+# SSH on localhost:
+#
+# RUN tcp.py 22
+
+# You can also test the connection to a remote server:
+#
+# RUN tcp.py -h remote-server -t 10 22
+
+##############################################################################
 # HTTP                                                                       #
 ##############################################################################
 
