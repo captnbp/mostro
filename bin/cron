@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export LANG=C
+
 function RUN() {
   local CHECK=$1
   shift

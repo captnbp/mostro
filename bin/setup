@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export LANG=C
+
 function blockquote {
   echo "$@" | sed "s/^/  > /"
 }
