@@ -1,4 +1,5 @@
 mostro.conf
+mostro_spec.conf
 checks/custom/*
 *.swp
 *.pid

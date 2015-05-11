@@ -109,7 +109,12 @@ fi
 
 cd "$DIR"
 
-CONFIGURATION_FILE="$DIR/mostro.conf"
+if [[ -z "$CONFIGURATION_FILE_NAME" ]]
+then
+  CONFIGURATION_FILE_NAME="mostro.conf"
+fi
+
+CONFIGURATION_FILE="$DIR/$CONFIGURATION_FILE_NAME"
 
 if [[ ! -f "$CONFIGURATION_FILE" ]]
 then
