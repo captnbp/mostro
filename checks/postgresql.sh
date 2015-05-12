@@ -23,22 +23,12 @@ done
 
 shift $(( OPTIND - 1 ))
 
-POSTGRESQL_DATABASE="$1"
-
-if [[ -z "$POSTGRESQL_DATABASE" ]]
-then
-  echo "error: No database specified."
-  exit 254
-fi
-
 if [[ -z "$PGCONNECT_TIMEOUT" ]]
 then
   PGCONNECT_TIMEOUT=5
 fi
 
 export PGCONNECT_TIMEOUT
-
-echo "argument: ${POSTGRESQL_DATABASE}"
 
 if [[ -n "$POSTGRESQL_USER" ]]
 then
@@ -52,7 +42,7 @@ fi
 
 export PGPASSWORD
 
-STATUS=$(psql $POSTGRESQL_HOST $POSTGRESQL_USER -w -A -F": " -X -t -x "$POSTGRESQL_DATABASE" 2>&1 <<EOF
+STATUS=$(psql $POSTGRESQL_HOST $POSTGRESQL_USER -w -A -F": " -X -t -x postgres 2>&1 <<EOF
 SELECT
 SUM(numbackends) AS numbackends,
 SUM(xact_commit) AS xact_commit,
@@ -65,33 +55,17 @@ SUM(tup_inserted) AS tup_inserted,
 SUM(tup_updated) AS tup_updated,
 SUM(tup_deleted) AS tup_deleted
 FROM pg_stat_database
-WHERE datname='${POSTGRESQL_DATABASE}';
+WHERE datname not ilike 'template%%'
+AND datname not ilike 'postgres';
 
-SELECT
-SUM(seq_scan) AS seq_scan,
-SUM(seq_tup_read) AS seq_tup_read,
-SUM(idx_scan) AS idx_scan,
-SUM(idx_tup_fetch) AS idx_tup_fetch,
-SUM(n_tup_ins) AS n_tup_ins,
-SUM(n_tup_upd) AS n_tup_upd,
-SUM(n_tup_del) AS n_tup_del,
-SUM(n_tup_hot_upd) AS n_tup_hot_upd,
-SUM(n_live_tup) AS n_live_tup,
-SUM(n_dead_tup) AS n_dead_tup
-FROM pg_stat_user_tables;
-
-SELECT
-SUM(heap_blks_read) AS heap_blks_read,
-SUM(heap_blks_hit) AS heap_blks_hit,
-SUM(idx_blks_read) AS idx_blks_read,
-SUM(idx_blks_hit) AS idx_blks_hit,
-SUM(toast_blks_read) AS toast_blks_read,
-SUM(toast_blks_hit) AS toast_blks_hit,
-SUM(tidx_blks_read) AS tidx_blks_read,
-SUM(tidx_blks_hit) AS tidx_blks_hit
-FROM pg_statio_user_tables;
-
-SELECT pg_database_size('${POSTGRESQL_DATABASE}') AS pg_database_size;
+SELECT setting AS max_connections FROM pg_settings WHERE name = 'max_connections';
+SELECT setting AS wal_buffers FROM pg_settings WHERE name = 'wal_buffers';
+SELECT setting AS shared_buffers FROM pg_settings WHERE name = 'shared_buffers';
+SELECT setting AS effective_cache_size FROM pg_settings WHERE name = 'effective_cache_size';
+SELECT setting AS work_mem FROM pg_settings WHERE name = 'work_mem';
+SELECT setting AS maintenance_work_mem FROM pg_settings WHERE name = 'maintenance_work_mem';
+SELECT setting AS checkpoint_segments FROM pg_settings WHERE name = 'checkpoint_segments';
+SELECT setting AS checkpoint_completion_target FROM pg_settings WHERE name = 'checkpoint_completion_target';
 EOF
 )
 
