@@ -1,0 +1,51 @@
+#!/bin/bash
+
+export LANG=C
+
+DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd )
+
+if [[ -z "$DIR" ]]
+then
+  echo "Unable to determine working directory." 1>&2
+  exit 1
+fi
+
+cd "$DIR"
+
+if [[ "$1" != "--yes" ]]
+then
+  read -n1 -p "Are you sure you want to delete this server? [y/N] " CONFIRMATION
+  echo
+
+  if [[ "$CONFIRMATION" != "y" && "$CONFIRMATION" != "Y" ]]
+  then
+    exit 0
+  fi
+fi
+
+if [[ -z "$CONFIGURATION_FILE_NAME" ]]
+then
+  CONFIGURATION_FILE_NAME="mostro.conf"
+fi
+
+CONFIGURATION_FILE="$DIR/$CONFIGURATION_FILE_NAME"
+
+if [[ ! -f "$CONFIGURATION_FILE" ]]
+then
+  echo "Missing configuration file." 1>&2
+  exit 1
+fi
+
+source "$CONFIGURATION_FILE" >/dev/null 2>&1
+
+if [[ -z "$ENDPOINT" ]]
+then
+  ENDPOINT="https://api.mostro.com"
+fi
+
+if [[ -z "$HOST" ]]
+then
+  HOST=$HOSTNAME
+fi
+
+curl -sS --max-time 5 -X DELETE --data-urlencode token="$TOKEN" "$ENDPOINT"/api/v1/servers/"$HOST"
