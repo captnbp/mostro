@@ -166,6 +166,21 @@ TOKEN=
 # RUN mysql_replication.sh -u user -p password
 
 ##############################################################################
+# PostgreSQL                                                                 #
+##############################################################################
+
+# You should create a dedicated user:
+# CREATE USER monitoring WITH PASSWORD 'monitoring_secret'
+
+# PostgreSQL status
+#
+# RUN postgresql.sh -u user -p password
+
+# Check a specific PostgreSQL database status
+#
+# RUN postgresql_database.sh -u user -p password db_name
+
+##############################################################################
 # nginx                                                                      #
 ##############################################################################
 
