@@ -43,6 +43,11 @@ echo "argument: ${POSTGRESQL_DATABASE}"
 if [[ -n "$POSTGRESQL_USER" ]]
 then
   POSTGRESQL_USER="-U ${POSTGRESQL_USER}"
+
+  if [[ -z "$POSTGRESQL_HOST" ]]
+  then
+    POSTGRESQL_HOST="127.0.0.1"
+  fi
 fi
 
 if [[ -n "$POSTGRESQL_HOST" ]]
