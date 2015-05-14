@@ -41,7 +41,9 @@ fi
 
 IFS=$'\n'
 
-for LINE in ${STATUS,,}
+STATUS=$(echo "$STATUS" | tr '[:upper:]' '[:lower:]')
+
+for LINE in $STATUS
 do
   IFS=$'\t'
 
