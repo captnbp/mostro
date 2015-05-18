@@ -7,7 +7,7 @@ import re
 import os
 
 LOCALHOST = "127.0.0.1"
-KEYS = ["curr_connections", "total_connections", "cmd_get", "cmd_set", "cmd_flush", "cmd_touch", "get_hits", "get_misses", "delete_misses", "delete_hits", "incr_misses", "incr_hits", "decr_misses", "decr_hits", "cas_misses", "cas_hits", "cas_badval", "touch_hits", "touch_misses", "bytes_read", "bytes_written", "limit_maxbytes", "bytes", "curr_items", "total_items", "evictions", "reclaimed", "maxconns", "active_slabs", "total_malloced", "listen_disabled_num", "conn_yields"]
+KEYS = ["curr_connections", "total_connections", "cmd_get", "cmd_set", "cmd_flush", "cmd_touch", "get_hits", "get_misses", "delete_misses", "delete_hits", "incr_misses", "incr_hits", "decr_misses", "decr_hits", "cas_misses", "cas_hits", "cas_badval", "touch_hits", "touch_misses", "bytes_read", "bytes_written", "limit_maxbytes", "bytes", "curr_items", "total_items", "evictions", "reclaimed", "maxconns", "active_slabs", "total_malloced", "listen_disabled_num", "conn_yields", "reqs_per_event"]
 
 print("---")
 print("service: memcache")
