@@ -2,6 +2,7 @@
 
 echo "---"
 echo "service: network_traffic"
+echo "version: 2015051901"
 
 if [ -z "$1" ]
 then

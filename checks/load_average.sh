@@ -2,6 +2,7 @@
 
 echo "---"
 echo "service: load_average"
+echo "version: 2015051901"
 
 LOADAVG=$(</proc/loadavg)
 

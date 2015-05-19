@@ -2,6 +2,7 @@
 
 print("---")
 print("service: mongodb")
+print("version: 2015051901")
 
 from optparse import OptionParser
 import sys

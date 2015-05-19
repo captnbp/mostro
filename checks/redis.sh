@@ -2,6 +2,7 @@
 
 echo "---"
 echo "service: redis"
+echo "version: 2015051901"
 
 REDIS_PORT=${1:-6379}
 

@@ -2,6 +2,7 @@
 
 echo "---"
 echo "service: influxdb"
+echo "version: 2015051901"
 
 INFLUXDB_HOST=${INFLUXDB_HOST:-"localhost:8086"}
 INFLUXDB_USER=${INFLUXDB_USER:-root}

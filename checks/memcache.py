@@ -11,6 +11,7 @@ KEYS = ["curr_connections", "total_connections", "cmd_get", "cmd_set", "cmd_flus
 
 print("---")
 print("service: memcache")
+print("version: 2015051901")
 
 parser = OptionParser(add_help_option=False)
 parser.add_option("-h", dest="host", default=LOCALHOST)

@@ -2,6 +2,7 @@
 
 echo "---"
 echo "service: http_status"
+echo "version: 2015051901"
 
 CURL_TIMEOUT="8"
 
