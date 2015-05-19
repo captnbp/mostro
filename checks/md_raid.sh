@@ -2,6 +2,7 @@
 
 echo "---"
 echo "service: md_raid"
+echo "version: 2015051901"
 
 MDSTAT=$(</proc/mdstat)
 

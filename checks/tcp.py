@@ -9,6 +9,7 @@ LOCALHOST = "127.0.0.1"
 
 print("---")
 print("service: tcp")
+print("version: 2015051901")
 
 parser = OptionParser(add_help_option=False)
 parser.add_option("-h", dest="host", default=LOCALHOST)

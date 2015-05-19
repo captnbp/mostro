@@ -2,6 +2,7 @@
 
 echo "---"
 echo "service: mysql"
+echo "version: 2015051901"
 
 while getopts :h:u:p: OPT
 do

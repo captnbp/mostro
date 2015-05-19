@@ -2,6 +2,7 @@
 
 echo "---"
 echo "service: apache"
+echo "version: 2015051901"
 
 APACHE_STATUS_URL=${1:-"http://localhost/server-status"}
 

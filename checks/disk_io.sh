@@ -2,6 +2,7 @@
 
 echo "---"
 echo "service: disk_io"
+echo "version: 2015051901"
 
 if [ -z "$1" ]
 then

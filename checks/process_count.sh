@@ -2,6 +2,7 @@
 
 echo "---"
 echo "service: process_count"
+echo "version: 2015051901"
 
 if [ "$1" = "-f" ]
 then

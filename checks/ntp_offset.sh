@@ -2,6 +2,7 @@
 
 echo "---"
 echo "service: ntp_offset"
+echo "version: 2015051901"
 
 VARIABLES=$(ntpq -nc readvar 2>&1)
 

@@ -2,6 +2,7 @@
 
 echo "---"
 echo "service: nginx"
+echo "version: 2015051901"
 
 NGINX_STATUS_URL=${1:-"http://localhost/nginx_status"}
 

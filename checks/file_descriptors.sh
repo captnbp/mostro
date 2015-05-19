@@ -2,6 +2,7 @@
 
 echo "---"
 echo "service: file_descriptors"
+echo "version: 2015051901"
 
 if ! DATA=$(cat /proc/sys/fs/file-nr 2>&1)
 then

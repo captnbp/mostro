@@ -2,6 +2,7 @@
 
 echo "---"
 echo "service: cpu"
+echo "version: 2015051901"
 
 PROCSTAT=$(grep '^cpu ' /proc/stat)
 PROCSTAT=( $PROCSTAT )

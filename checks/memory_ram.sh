@@ -2,6 +2,7 @@
 
 echo "---"
 echo "service: memory_ram"
+echo "version: 2015051901"
 
 MEMINFO=$(</proc/meminfo)
 
