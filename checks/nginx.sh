@@ -2,7 +2,7 @@
 
 echo "---"
 echo "service: nginx"
-echo "version: 2015051901"
+echo "version: 2015052101"
 
 NGINX_STATUS_URL=${1:-"http://localhost/nginx_status"}
 
@@ -18,6 +18,7 @@ for LINE in $OUTPUT
 do
   REGEX_ACTIVE="Active connections: ([0-9]+)"
   REGEX_CONNECTIONS="^ ([0-9]+) ([0-9]+) ([0-9]+)"
+  REGEX_DOING="^Reading: ([0-9]+) Writing: ([0-9]+) Waiting: ([0-9]+)"
 
   if [[ "$LINE" =~ $REGEX_ACTIVE ]]
   then
@@ -25,10 +26,12 @@ do
   elif [[ "$LINE" =~ $REGEX_CONNECTIONS ]]
   then
     echo "total_connections: ${BASH_REMATCH[1]}"
+    echo "handled_connections: ${BASH_REMATCH[2]}"
     echo "total_requests: ${BASH_REMATCH[3]}"
-    exit 0
+  elif [[ "$LINE" =~ $REGEX_DOING ]]
+  then
+    echo "reading: ${BASH_REMATCH[1]}"
+    echo "writing: ${BASH_REMATCH[2]}"
+    echo "waiting: ${BASH_REMATCH[3]}"
   fi
 done
-
-echo "error: \"Couldn't retrieve statistics from Nginx\""
-exit 254
