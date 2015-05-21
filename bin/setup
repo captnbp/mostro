@@ -184,12 +184,17 @@ function detect_swap {
   fi
 }
 
+if [[ -z "$PATH_TO_FSTAB" ]]
+then
+  PATH_TO_FSTAB="/etc/fstab"
+fi
+
 function detect_partitions {
   # Find all partitions matching:
   #  /dev/sda1   /
   #  UUID=test   /
   #  LABEL=test  /
-  awk 'match($1, /^(\/|[A-Z]+=)/) && match($2, /^\//) && !match($2, /^\/media/) && !match($2, /^\/mnt/) { print $2 }' /etc/fstab
+  awk 'match($1, /^(\/|[A-Z]+=)/) && match($2, /^\/[a-z]*$/) { print $2 }' "$PATH_TO_FSTAB"
 }
 
 function detect_interfaces {
