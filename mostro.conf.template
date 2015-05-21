@@ -184,13 +184,13 @@ TOKEN=
 # nginx                                                                      #
 ##############################################################################
 
-# You need to enable the stub_status module in nginx configuration:
+# You first need to enable the stub_status module in nginx configuration:
 #   location /nginx_status {
 #     stub_status on;
 #     allow 127.0.0.1;
 #     deny all;
 #   }
-
+#
 # RUN nginx.sh
 
 # You can give the URL to the nginx status page as an argument.
