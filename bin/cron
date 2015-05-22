@@ -201,7 +201,7 @@ fi
 
 API_TIMESTAMP=$(date +"%s")
 
-echo -n "$CHECKS_OUTPUT" | curl $CURL_ARGS -sS -f --max-time 5 --retry 1 --retry-delay 2 --data-urlencode api_timestamp="$API_TIMESTAMP" --data-urlencode token="$TOKEN" --data-urlencode hostname="$HOST" --data-urlencode tags="$TAGS" --data-urlencode data@- "$ENDPOINT"/api/v1/events
+STATUS_CODE=$(echo -n "$CHECKS_OUTPUT" | curl $CURL_ARGS -s -f -o /dev/null -w "%{http_code}" --max-time 5 --retry 1 --retry-delay 2 --data-urlencode api_timestamp="$API_TIMESTAMP" --data-urlencode token="$TOKEN" --data-urlencode hostname="$HOST" --data-urlencode tags="$TAGS" --data-urlencode data@- "$ENDPOINT"/api/v1/events)
 CURL_RETURN_CODE=$?
 
 rm -f "$PIDFILE"
@@ -213,7 +213,10 @@ fi
 
 if [ $CURL_RETURN_CODE -gt 0 ]
 then
-  exit $CURL_RETURN_CODE
+  if [ "$STATUS_CODE" != "429" ]
+  then
+    exit $CURL_RETURN_CODE
+  fi
 fi
 
 exit 0
