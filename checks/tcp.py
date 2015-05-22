@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from optparse import OptionParser
 import socket
@@ -9,7 +9,7 @@ LOCALHOST = "127.0.0.1"
 
 print("---")
 print("service: tcp")
-print("version: 2015051901")
+print("version: 2015052201")
 
 parser = OptionParser(add_help_option=False)
 parser.add_option("-h", dest="host", default=LOCALHOST)
@@ -35,10 +35,10 @@ try:
     start_time = datetime.datetime.now()
     sock.connect((options.host, options.port))
 except socket.timeout:
-    print "error: Connection timed out"
+    print("error: Connection timed out")
     sys.exit(254)
-except socket.error as (code, reason):
-    print("error: \"%s\"" % reason)
+except socket.error as reason:
+    print("error: \"%s\"" % reason.strerror)
     sys.exit(254)
 finally:
     end_time = datetime.datetime.now()
