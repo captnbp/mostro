@@ -1,8 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 print("---")
 print("service: mongodb")
-print("version: 2015051901")
+print("version: 2015052201")
 
 from optparse import OptionParser
 import sys
@@ -11,7 +11,7 @@ import time
 try:
     import pymongo
 except:
-    print "error: You need to install pymongo."
+    print("error: You need to install pymongo.")
     sys.exit(254)
 
 parser = OptionParser(add_help_option=False)
@@ -30,7 +30,7 @@ try:
 
     server_status = db.command("serverStatus", repl=0, recordStats=0, dur=0)
 except Exception as exception:
-    print "error: \"%s\"" % exception
+    print("error: \"%s\"" % exception)
     sys.exit(254)
 
 def variable_exists(parent, variable):
@@ -38,7 +38,7 @@ def variable_exists(parent, variable):
 
 def print_variable(name, parent, variable):
     if variable_exists(parent, variable):
-        print "%s: %d" % (name, server_status[parent][variable])
+        print("%s: %d" % (name, server_status[parent][variable]))
 
 print_variable("mem_resident", "mem", "resident")
 print_variable("mem_virtual", "mem", "virtual")
