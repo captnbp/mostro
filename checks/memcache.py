@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from optparse import OptionParser
 import socket
@@ -11,7 +11,7 @@ KEYS = ["curr_connections", "total_connections", "cmd_get", "cmd_set", "cmd_flus
 
 print("---")
 print("service: memcache")
-print("version: 2015051901")
+print("version: 2015052201")
 
 parser = OptionParser(add_help_option=False)
 parser.add_option("-h", dest="host", default=LOCALHOST)
@@ -40,14 +40,14 @@ try:
 
     sock.connect((options.host, options.port))
 
-    sock.send("stats settings\n")
-    data += sock.recv(16384)
+    sock.send(b"stats settings\n")
+    data += sock.recv(16384).decode("ascii")
 
-    sock.send("stats\n")
-    data += sock.recv(16384)
+    sock.send(b"stats\n")
+    data += sock.recv(16384).decode("ascii")
 
-    sock.send("stats slabs\n")
-    data += sock.recv(16384)
+    sock.send(b"stats slabs\n")
+    data += sock.recv(16384).decode("ascii")
 
     sock.close()
 
@@ -63,8 +63,8 @@ try:
             if key in KEYS:
                 print("%s: %s" % (key, value))
 except socket.timeout:
-    print "error: Connection timed out"
+    print("error: Connection timed out")
     sys.exit(254)
-except socket.error, error:
-    print("error: \"%s\"" % error[1])
+except socket.error as reason:
+    print("error: \"%s\"" % reason.strerror)
     sys.exit(254)
